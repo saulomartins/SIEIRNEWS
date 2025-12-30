@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste GridStack</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@10.1.2/dist/gridstack.min.css">
+</head>
+<body class="bg-dark text-light p-4">
+  <h1>Teste GridStack</h1>
+  <div id="status" class="alert alert-info">Carregando...</div>
+  
+  <div class="grid-stack">
+    <div class="grid-stack-item" gs-w="6" gs-h="4">
+      <div class="grid-stack-item-content bg-primary p-3">
+        <h3>Painel 1</h3>
+        <p>Se você está vendo este painel, o GridStack está funcionando!</p>
+      </div>
+    </div>
+    <div class="grid-stack-item" gs-w="6" gs-h="4" gs-x="6">
+      <div class="grid-stack-item-content bg-success p-3">
+        <h3>Painel 2</h3>
+        <p>Você pode arrastar e redimensionar este painel.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gridstack@10.1.2/dist/gridstack-all.js"></script>
+  <script>
+    const status = document.getElementById('status');
+    
+    // Verificar se GridStack foi carregado
+    if (typeof GridStack === 'undefined') {
+      status.className = 'alert alert-danger';
+      status.textContent = 'ERRO: GridStack não foi carregado!';
+    } else {
+      status.className = 'alert alert-success';
+      status.textContent = 'GridStack carregado com sucesso!';
+      
+      // Inicializar GridStack
+      try {
+        const grid = GridStack.init({
+          column: 12,
+          cellHeight: 70
+        });
+        console.log('GridStack inicializado:', grid);
+      } catch (error) {
+        status.className = 'alert alert-danger';
+        status.textContent = 'ERRO ao inicializar GridStack: ' + error.message;
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste Botões</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="container mt-5">
+    <h1>Teste de Botões</h1>
+    <div class="d-flex gap-2 flex-wrap mt-3">
+      <button class="btn btn-info btn-sm" id="freezeBtn">
+        <i class="bi bi-pause-circle"></i> Congelar
+      </button>
+      <button class="btn btn-warning btn-sm" id="unfreezeBtn">
+        <i class="bi bi-play-circle"></i> Descongelar
+      </button>
+      <button class="btn btn-gold btn-sm" id="refreshBtn">
+        <i class="bi bi-arrow-clockwise"></i> Atualizar
+      </button>
+      <button class="btn btn-secondary btn-sm" id="resetColumnsBtn">
+        <i class="bi bi-arrow-counterclockwise"></i> Resetar
+      </button>
+    </div>
+    
+    <div class="mt-4">
+      <h3>Verificação:</h3>
+      <div id="output"></div>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const freezeBtn = document.getElementById('freezeBtn');
+      const output = document.getElementById('output');
+      
+      output.innerHTML = `
+        <p>freezeBtn encontrado: ${freezeBtn ? 'SIM' : 'NÃO'}</p>
+        <p>freezeBtn visível: ${freezeBtn && freezeBtn.style.display !== 'none' ? 'SIM' : 'NÃO'}</p>
+        <p>Classes: ${freezeBtn ? freezeBtn.className : 'N/A'}</p>
+      `;
+      
+      if (freezeBtn) {
+        freezeBtn.addEventListener('click', () => {
+          alert('Botão Congelar clicado!');
+        });
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste API</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #0f0; }
+        pre { background: #000; padding: 10px; overflow: auto; }
+        button { padding: 10px 20px; margin: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Teste da API de Dados</h1>
+    <button onclick="testSingleTicker()">Testar Ticker Individual (AAPL)</button>
+    <button onclick="testMultipleTickers()">Testar Múltiplos Tickers</button>
+    <button onclick="testWithAuth()">Testar com Autenticação Real</button>
+    
+    <h2>Resultado:</h2>
+    <div id="status"></div>
+    <pre id="result"></pre>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        const status = document.getElementById('status');
+        const result = document.getElementById('result');
+
+        async function testSingleTicker() {
+            status.textContent = 'Testando ticker individual...';
+            result.textContent = '';
+            
+            try {
+                const response = await fetch(`${API_URL}/data/ticker/AAPL`, {
+                    headers: {
+                        'Authorization': 'Bearer test'
+                    }
+                });
+                
+                const data = await response.json();
+                status.textContent = 'Sucesso!';
+                result.textContent = JSON.stringify(data, null, 2);
+                
+            } catch (error) {
+                status.textContent = 'Erro!';
+                result.textContent = error.message;
+            }
+        }
+
+        async function testMultipleTickers() {
+            status.textContent = 'Testando múltiplos tickers...';
+            result.textContent = '';
+            
+            try {
+                const response = await fetch(`${API_URL}/data/multiple`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer test'
+                    },
+                    body: JSON.stringify({ symbols: ['AAPL', 'TSLA', 'GOOGL'] })
+                });
+                
+                const data = await response.json();
+                status.textContent = 'Sucesso!';
+                result.textContent = JSON.stringify(data, null, 2);
+                
+            } catch (error) {
+                status.textContent = 'Erro!';
+                result.textContent = error.message;
+            }
+        }
+
+        async function testWithAuth() {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                status.textContent = 'Erro: Faça login primeiro!';
+                return;
+            }
+            
+            status.textContent = 'Testando com token real...';
+            result.textContent = '';
+            
+            try {
+                const response = await fetch(`${API_URL}/data/multiple`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ symbols: ['AAPL', 'TSLA', 'GOOGL', 'MSFT', 'AMZN'] })
+                });
+                
+                const data = await response.json();
+                status.textContent = 'Sucesso! Token válido.';
+                result.textContent = JSON.stringify(data, null, 2);
+                
+            } catch (error) {
+                status.textContent = 'Erro!';
+                result.textContent = error.message;
+            }
+        }
+    </script>
+</body>
+</html>

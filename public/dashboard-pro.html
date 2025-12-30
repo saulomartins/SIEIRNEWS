@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SEIER TRADER - Professional Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="css/dashboard-pro.css?v=20251229z02">
+</head>
+<body>
+  <!-- Header Premium -->
+  <nav class="navbar-pro">
+    <div class="container-fluid">
+      <div class="d-flex align-items-center">
+        <div class="logo-section">
+          <h1 class="logo-title">SEIER<span class="logo-red">TRADER</span></h1>
+          <p class="logo-subtitle">BATTLE</p>
+        </div>
+      </div>
+      <div class="header-controls">
+        <span class="time-display" id="currentTime">11:33:16</span>
+        <button class="btn-icon" id="logoutBtn" title="Sair">
+          <i class="bi bi-box-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Alerta de Negociação -->
+  <div id="tradingAlert" class="trading-alert" style="display: none;">
+    <div class="alert-content">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <span id="alertMessage"></span>
+      <button class="btn-close-alert" onclick="document.getElementById('tradingAlert').style.display='none'">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal de Palavras-Chave -->
+  <div id="keywordsModal" class="keywords-modal" style="display: none;">
+    <div class="keywords-modal-content">
+      <div class="keywords-modal-header">
+        <h3><i class="bi bi-key-fill"></i> Palavras-Chave para Destaque</h3>
+        <button class="btn-close-modal" onclick="document.getElementById('keywordsModal').style.display='none'">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="keywords-modal-body">
+        <p style="color: #999; margin-bottom: 1rem; font-size: 0.9rem;">
+          Adicione palavras-chave que serão destacadas com marca-texto amarelo nas notícias.
+        </p>
+        <div class="keywords-input-group">
+          <input type="text" id="keywordInput" placeholder="Digite uma palavra-chave..." />
+          <button id="addKeywordBtn" class="btn-add-keyword">Adicionar</button>
+        </div>
+        <div class="keywords-list" id="keywordsList">
+          <!-- Lista de palavras-chave -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Dashboard -->
+  <div class="dashboard-container">
+    <!-- COLUNA ESQUERDA: NASDAQ + METAIS -->
+    <div class="left-column">
+      <!-- Painel NASDAQ (Topo) -->
+      <div class="panel panel-nasdaq">
+        <div class="panel-header-mini">
+          <i class="bi bi-square-fill icon-red"></i>
+          <span>NASDAQ</span>
+          <span id="nasdaqLastUpdate" class="text-muted" style="font-size: 0.75em; margin-left: 8px;">Atualizando...</span>
+          <span id="nasdaqAverage" class="nasdaq-average" style="display: none;">Média: <strong>--</strong></span>
+          <button class="btn-freeze">Congelar</button>
+        </div>
+        <div class="nasdaq-table">
+          <table>
+            <thead>
+              <tr>
+                <th rowspan="2">Ativo</th>
+                <th colspan="3">MERCADO (11:30-18:00)</th>
+                <th colspan="3">PRE-MARKET (19:20-10:59)</th>
+                <th rowspan="2" id="nasdaqFrozenHeader">Var.% Congelada</th>
+                <th rowspan="2">Diferença</th>
+              </tr>
+              <tr>
+                <th>Preço</th>
+                <th>Var.%</th>
+                <th class="time-col">Hora</th>
+                <th>Preço</th>
+                <th>Var.%</th>
+                <th class="time-col">Hora</th>
+              </tr>
+            </thead>
+            <tbody id="nasdaqTableBody">
+              <!-- Dados serão inseridos aqui -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Painel de Metais (Abaixo do NASDAQ) -->
+      <div class="panel panel-metals" style="margin-top: 10px;">
+        <div class="panel-header-mini">
+          <i class="bi bi-square-fill icon-red"></i>
+          <span>Metais</span>
+          <button class="btn-freeze">Congelar</button>
+        </div>
+        <div class="metals-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Ativo</th>
+                <th>Último</th>
+                <th>Var.%</th>
+                <th id="metalsFrozenHeader">Var.% Congelada</th>
+                <th>Diferença</th>
+                <th class="time-col">11:33:16</th>
+              </tr>
+            </thead>
+            <tbody id="metalsTableBody">
+              <!-- Dados serão inseridos aqui -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIVISOR 1 -->
+    <div class="resizer" id="resizer1"></div>
+
+    <!-- COLUNA CENTRO: NOTÍCIAS -->
+    <div class="center-column">
+      <!-- Feed de Notícias -->
+      <div class="panel panel-news">
+        <div class="panel-header-news">
+          <i class="bi bi-square-fill icon-red"></i>
+          <span>SEIER News</span>
+          <div class="news-controls">
+            <button class="btn-news">Notificação</button>
+            <button class="btn-news">Som</button>
+          </div>
+        </div>
+        <div class="news-container" id="newsContainer">
+          <div class="news-controls-left">
+            <button class="btn-news-ctrl">-</button>
+            <button class="btn-news-ctrl">+</button>
+            <button class="btn-news-ctrl">Traduzir</button>
+            <button class="btn-news-ctrl" id="keywordsBtn" title="Gerenciar palavras-chave"><i class="bi bi-key-fill"></i></button>
+          </div>
+          <div class="news-feed" id="newsFeed">
+            <!-- Notícias serão inseridas aqui -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIVISOR 2 -->
+    <div class="resizer" id="resizer2"></div>
+
+    <!-- COLUNA DIREITA: VAZIA (pode adicionar outros painéis depois) -->
+    <div class="right-column">
+      <!-- Espaço para futuros painéis -->
+    </div>
+  </div>
+
+    <script src="js/dashboard-pro.js?v=20251229z13"></script>
+</body>
+</html>

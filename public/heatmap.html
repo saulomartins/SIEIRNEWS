@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S&P 500 Heatmap - Tempo Real</title>
+    <link rel="stylesheet" href="css/heatmap.css?v=20251223z2">
+</head>
+<body>
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <h1>S&P 500 Heatmap</h1>
+            <span class="status" id="status">Carregando...</span>
+        </div>
+        <div class="top-bar-right">
+            <span class="last-update">Atualizado: <span id="lastUpdate">--:--:--</span></span>
+            <span class="countdown" id="countdown">15s</span>
+        </div>
+    </div>
+
+    <div id="heatmap" class="treemap-container"></div>
+
+    <script src="js/heatmap-treemap.js?v=20251223z2"></script>
+</body>
+</html>

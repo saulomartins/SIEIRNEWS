@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SEIER TRADER - Dashboard Modular</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/dashboard-modular.css">
+</head>
+<body>
+  <!-- Header Premium -->
+  <nav class="navbar premium-header sticky-top">
+    <div class="container-fluid py-2">
+      <div class="d-flex align-items-center">
+        <img src="images/logo.png" alt="SEIER TRADER" class="logo-img me-2 me-md-3">
+        <div class="logo-text">
+          <h1 class="mb-0 text-gold">SEIER TRADER</h1>
+          <p class="mb-0 text-silver small d-none d-md-block">Professional Trading Dashboard</p>
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-success btn-sm" id="addPanelBtn">
+          <i class="bi bi-plus-square"></i> <span class="d-none d-sm-inline">Novo Painel</span>
+        </button>
+        <button class="btn btn-gold btn-sm" id="saveLa youtBtn">
+          <i class="bi bi-save"></i> <span class="d-none d-sm-inline">Salvar Layout</span>
+        </button>
+        <button class="btn btn-outline-gold btn-sm" id="logoutBtn">
+          <i class="bi bi-box-arrow-right"></i> <span class="d-none d-sm-inline">Sair</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Dashboard Grid -->
+  <div class="container-fluid p-3">
+    <div id="dashboardGrid" class="dashboard-grid">
+      
+      <!-- Painel 1: Ações -->
+      <div class="dashboard-panel" data-panel-id="stocks">
+        <div class="panel-header">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-graph-up panel-icon"></i>
+            <h5 class="mb-0">Ações</h5>
+            <span class="badge bg-live ms-2">
+              <i class="bi bi-broadcast"></i> AO VIVO
+            </span>
+          </div>
+          <div class="panel-actions">
+            <button class="btn-panel" id="freezeStocksBtn" title="Congelar">
+              <i class="bi bi-pause-circle"></i>
+            </button>
+            <button class="btn-panel d-none" id="unfreezeStocksBtn" title="Descongelar">
+              <i class="bi bi-play-circle"></i>
+            </button>
+            <button class="btn-panel" title="Atualizar">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <button class="btn-panel" title="Configurar">
+              <i class="bi bi-gear"></i>
+            </button>
+            <button class="btn-panel btn-panel-close" title="Fechar">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="table-responsive">
+            <table class="table table-dark table-hover table-sm">
+              <thead>
+                <tr>
+                  <th>Ativo</th>
+                  <th>Último</th>
+                  <th>Var.%</th>
+                  <th>Horário</th>
+                </tr>
+              </thead>
+              <tbody id="stocksTableBody">
+                <tr><td colspan="4" class="text-center"><div class="spinner-border spinner-border-sm text-gold"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Painel 2: Metais -->
+      <div class="dashboard-panel" data-panel-id="metals">
+        <div class="panel-header">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-gem panel-icon"></i>
+            <h5 class="mb-0">Metais</h5>
+            <button class="btn btn-sm btn-outline-gold ms-2">Congelar</button>
+          </div>
+          <div class="panel-actions">
+            <button class="btn-panel" title="Atualizar">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <button class="btn-panel" title="Configurar">
+              <i class="bi bi-gear"></i>
+            </button>
+            <button class="btn-panel btn-panel-close" title="Fechar">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="table-responsive">
+            <table class="table table-dark table-hover table-sm">
+              <thead>
+                <tr>
+                  <th>Ativo</th>
+                  <th>Último</th>
+                  <th>Var.%</th>
+                  <th>Horário</th>
+                </tr>
+              </thead>
+              <tbody id="metalsTableBody">
+                <tr>
+                  <td><i class="bi bi-coin text-warning"></i> Ouro</td>
+                  <td>4,485.20</td>
+                  <td class="text-success">+0.35%</td>
+                  <td>11:38:20</td>
+                </tr>
+                <tr>
+                  <td><i class="bi bi-circle text-silver"></i> Platina</td>
+                  <td>2,237.00</td>
+                  <td class="text-success">+7.06%</td>
+                  <td>11:38:21</td>
+                </tr>
+                <tr>
+                  <td><i class="bi bi-circle text-secondary"></i> Prata</td>
+                  <td>69.740</td>
+                  <td class="text-success">+1.71%</td>
+                  <td>11:38:20</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Painel 3: Notícias -->
+      <div class="dashboard-panel" data-panel-id="news">
+        <div class="panel-header">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-newspaper panel-icon"></i>
+            <h5 class="mb-0">Laatus News</h5>
+          </div>
+          <div class="panel-actions">
+            <button class="btn btn-sm btn-outline-info">Notificação</button>
+            <button class="btn btn-sm btn-outline-secondary">Som</button>
+            <button class="btn-panel btn-panel-close" title="Fechar">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="news-feed" id="newsFeed">
+            <div class="news-item">
+              <span class="news-time">11:35</span>
+              <span class="news-date">23 Dez</span>
+              <span class="news-text">BC confirma que manteve reuniões com o ministro Alexandre de Moraes</span>
+            </div>
+            <div class="news-item">
+              <span class="news-time">11:30</span>
+              <span class="news-date">23 Dez</span>
+              <span class="news-text">As ações caem após o forte relatório do PIB diminuir as perspectivas</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Painel 4: NASDAQ -->
+      <div class="dashboard-panel" data-panel-id="nasdaq">
+        <div class="panel-header">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-bar-chart-line panel-icon"></i>
+            <h5 class="mb-0">NASDAQ</h5>
+            <button class="btn btn-sm btn-outline-gold ms-2">Congelar</button>
+          </div>
+          <div class="panel-actions">
+            <button class="btn-panel" title="Configurar">
+              <i class="bi bi-gear"></i>
+            </button>
+            <button class="btn-panel btn-panel-close" title="Fechar">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="table-responsive">
+            <table class="table table-dark table-hover table-sm">
+              <thead>
+                <tr>
+                  <th>Ativo</th>
+                  <th>Último</th>
+                  <th>Var.%</th>
+                  <th>11:33:16</th>
+                </tr>
+              </thead>
+              <tbody id="nasdaqTableBody">
+                <tr><td colspan="4" class="text-center"><div class="spinner-border spinner-border-sm text-gold"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal Adicionar Painel -->
+  <div class="modal fade" id="addPanelModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content bg-dark text-light">
+        <div class="modal-header border-gold">
+          <h5 class="modal-title text-gold">
+            <i class="bi bi-plus-square"></i> Adicionar Novo Painel
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="panel-type-card" data-panel-type="stocks">
+                <i class="bi bi-graph-up"></i>
+                <p>Ações</p>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="panel-type-card" data-panel-type="metals">
+                <i class="bi bi-gem"></i>
+                <p>Metais</p>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="panel-type-card" data-panel-type="news">
+                <i class="bi bi-newspaper"></i>
+                <p>Notícias</p>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="panel-type-card" data-panel-type="chart">
+                <i class="bi bi-bar-chart"></i>
+                <p>Gráfico</p>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="panel-type-card" data-panel-type="heatmap">
+                <i class="bi bi-grid-3x3"></i>
+                <p>Mapa de Calor</p>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="panel-type-card" data-panel-type="watchlist">
+                <i class="bi bi-star"></i>
+                <p>Favoritos</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/dashboard-modular.js"></script>
+</body>
+</html>
