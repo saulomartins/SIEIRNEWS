@@ -185,58 +185,50 @@ async function scrapeFinancialJuiceNews() {
         // Extrair notícias da página usando seletores específicos do Financial Juice
         const news = await page.evaluate(() => {
             const newsItems = [];
-            
             // Buscar todos os containers de notícias
             const newsContainers = document.querySelectorAll('.feedWrap');
-            
             console.log(`[FJ SCRAPER] Encontrados ${newsContainers.length} containers de notícias`);
 
             newsContainers.forEach((container, index) => {
                 if (index >= 30) return; // Limitar a 30 notícias
 
+                // Verificar se é notícia crítica
+                const isCritical = container.classList.contains('active-critical');
+
                 // Buscar o título - pode estar em span.headline-title-nolink ou a.headline-title-nolink
                 let titleElement = container.querySelector('.headline-title-nolink');
-                
                 if (!titleElement) {
                     console.log(`[FJ SCRAPER] Container ${index}: Sem título`);
                     return;
                 }
-
                 // Pegar o texto do título
                 let title = titleElement.textContent.trim();
-                
                 // Limpar título
                 title = title.replace(/\s+/g, ' ').trim();
-
                 // Filtrar títulos indesejados ou muito curtos
                 const excludedPhrases = [
                     'Need to know market risk',
                     'Join us and Go Real-time',
                     'Track all markets'
                 ];
-                
                 const shouldExclude = excludedPhrases.some(phrase => 
                     title.toLowerCase().includes(phrase.toLowerCase())
                 );
-                
                 if (shouldExclude || title.length < 15) {
                     console.log(`[FJ SCRAPER] Container ${index}: Título excluído ou muito curto - "${title}"`);
                     return;
                 }
-
                 // Buscar a URL se o elemento for um link, senão usar URL base
                 let url = 'https://www.financialjuice.com/home';
                 if (titleElement.tagName === 'A' && titleElement.href) {
                     url = titleElement.href;
                 }
-                
                 // Buscar data/hora na classe news-label ou timestamp
                 let timeText = '';
                 const timeElement = container.querySelector('.news-label, .timestamp, [class*="time"]');
                 if (timeElement) {
                     timeText = timeElement.textContent.trim();
                 }
-                
                 // Buscar data/hora - tentar vários seletores
                 const timeElements = container.querySelectorAll('small, .time, [class*="time"], [class*="date"], span, time');
                 for (const timeEl of timeElements) {
@@ -267,7 +259,8 @@ async function scrapeFinancialJuiceNews() {
                     title: title.substring(0, 250),
                     url: url,
                     pubDate: pubDate,
-                    timeText: timeText
+                    timeText: timeText,
+                    critical: isCritical
                 });
             });
 
@@ -285,7 +278,8 @@ async function scrapeFinancialJuiceNews() {
             pubDate: item.pubDate,
             source: 'Financial Juice',
             url: item.url,
-            stocks: []
+            stocks: [],
+            critical: !!item.critical
         }));
 
         await browser.close();

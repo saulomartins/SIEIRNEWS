@@ -34,9 +34,9 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
       // Mostrar mensagem de sucesso
       showAlert('Login realizado com sucesso! Redirecionando...', 'success');
       
-      // Redirecionar para dashboard
+      // Redirecionar para dashboard-pro
       setTimeout(() => {
-        window.location.href = 'dashboard.html';
+        window.location.href = 'dashboard-pro.html';
       }, 1000);
     } else {
       showAlert(data.message || 'Erro ao fazer login', 'danger');

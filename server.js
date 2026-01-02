@@ -20,7 +20,7 @@ app.use('/api/data', dataRoutes);
 
 // Rota principal
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+  res.sendFile(path.join(__dirname, 'public', 'dashboard-pro.html'));
 });
 
 app.listen(PORT, () => {

@@ -1,3 +1,18 @@
+// Salvar traduções no localStorage
+function saveTranslatedNews(newsArr) {
+  try {
+    localStorage.setItem('translatedNews', JSON.stringify(newsArr));
+  } catch (e) { console.error('Erro ao salvar traduções:', e); }
+}
+
+// Carregar traduções do localStorage
+function loadTranslatedNews() {
+  try {
+    const data = localStorage.getItem('translatedNews');
+    if (data) return JSON.parse(data);
+  } catch (e) { console.error('Erro ao carregar traduções:', e); }
+  return [];
+}
 // Dashboard Professional JavaScript
 console.log('=== DASHBOARD PROFESSIONAL INICIANDO ===');
 
@@ -6,10 +21,10 @@ const API_URL = 'http://localhost:3000/api';
 // Sistema de redimensionamento de colunas
 function initializeResizers() {
   const resizer1 = document.getElementById('resizer1');
-  const resizer2 = document.getElementById('resizer2');
+  // const resizer2 = document.getElementById('resizer2'); // removido
   const leftColumn = document.querySelector('.left-column');
   const centerColumn = document.querySelector('.center-column');
-  const rightColumn = document.querySelector('.right-column');
+  // const rightColumn = document.querySelector('.right-column'); // removido
   
   let isResizing = false;
   let currentResizer = null;
@@ -36,26 +51,17 @@ function initializeResizers() {
   
   function resize(e) {
     if (!isResizing) return;
-    
     if (currentResizer === resizer1) {
       const containerRect = document.querySelector('.dashboard-container').getBoundingClientRect();
       const newWidth = e.clientX - containerRect.left - 8;
-      
       if (newWidth >= 250 && newWidth <= 600) {
         leftColumn.style.width = newWidth + 'px';
-      }
-    } else if (currentResizer === resizer2) {
-      const containerRect = document.querySelector('.dashboard-container').getBoundingClientRect();
-      const newWidth = containerRect.right - e.clientX - 8;
-      
-      if (newWidth >= 300 && newWidth <= 700) {
-        rightColumn.style.width = newWidth + 'px';
       }
     }
   }
   
   resizer1.addEventListener('mousedown', (e) => startResize(e, resizer1));
-  resizer2.addEventListener('mousedown', (e) => startResize(e, resizer2));
+  // resizer2 removido
   document.addEventListener('mousemove', resize);
   document.addEventListener('mouseup', stopResize);
   
@@ -217,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Buscar notícias e atualizar a cada 10 segundos
   fetchNews();
-  setInterval(fetchNews, 10000);
+  setInterval(fetchNews, 1000);
   
   // Event listeners
   document.getElementById('logoutBtn').addEventListener('click', logout);
@@ -262,6 +268,24 @@ document.addEventListener('DOMContentLoaded', () => {
     
     console.log('✅ Sistema de palavras-chave inicializado');
   }
+
+  // Restaurar estado do botão Traduzir (garantido ao final do DOMContentLoaded)
+  setTimeout(() => {
+    const tradState = localStorage.getItem('newsTranslated');
+    if (tradState === 'true') {
+      // Busca botão pelo texto (Traduzir ou Original)
+      const btns = document.querySelectorAll('.btn-news-ctrl');
+      let translateBtn = null;
+      btns.forEach(btn => {
+        if (btn.textContent.trim() === 'Traduzir' || btn.textContent.trim() === 'Original') {
+          translateBtn = btn;
+        }
+      });
+      if (translateBtn && !newsTranslated) {
+        translateBtn.click();
+      }
+    }
+  }, 1200);
   
   // Fechar modal ao clicar fora
   const keywordsModal = document.getElementById('keywordsModal');
@@ -400,15 +424,15 @@ function getCurrentTradingPeriod() {
   // MERCADO: 11:30 - 18:00 (690 - 1080 minutos)
   const marketStart = 11 * 60 + 30; // 690
   const marketEnd = 18 * 60; // 1080
-  
-  // PRE-MARKET: 19:20 - 10:59 (cruza meia-noite)
+
+  // PRE-MARKET: 19:20 - 11:59 (cruza meia-noite)
   const preMarketStart = 19 * 60 + 20; // 1160
-  const preMarketEnd = 10 * 60 + 59; // 659
-  
+  const preMarketEnd = 11 * 60 + 59; // 719
+
   if (timeInMinutes >= marketStart && timeInMinutes <= marketEnd) {
     return 'MARKET';
   } else if (timeInMinutes >= preMarketStart || timeInMinutes <= preMarketEnd) {
-    // PRE-MARKET: das 19:20 até 23:59 OU das 00:00 até 10:59
+    // PRE-MARKET: das 19:20 até 23:59 OU das 00:00 até 11:59
     return 'PRE-MARKET';
   } else {
     return 'CLOSED';
@@ -527,10 +551,12 @@ async function fetchNews() {
     // O backend retorna diretamente o array de notícias
     if (Array.isArray(newsData)) {
       console.log('✅ Notícias recebidas:', newsData.length);
-      updateNewsPanel(newsData);
+      originalNews = newsData;
+      updateNewsPanel(newsTranslated ? translatedNews : originalNews);
     } else if (newsData.data && Array.isArray(newsData.data)) {
       console.log('✅ Notícias recebidas (objeto):', newsData.data.length);
-      updateNewsPanel(newsData.data);
+      originalNews = newsData.data;
+      updateNewsPanel(newsTranslated ? translatedNews : originalNews);
     } else {
       console.warn('⚠️ Formato inesperado de notícias:', newsData);
       updateNewsPanel([]);
@@ -559,8 +585,10 @@ function updateNewsPanel(newsArray) {
     return;
   }
   
-  // Armazenar notícias originais
-  if (!newsTranslated) {
+  // Sempre mostrar translatedNews se newsTranslated estiver ativo
+  if (newsTranslated && translatedNews.length > 0) {
+    newsArray = translatedNews;
+  } else {
     originalNews = newsArray;
   }
   
@@ -601,15 +629,18 @@ function updateNewsPanel(newsArray) {
   console.log('✅ Painel de notícias atualizado com sucesso');
 }
 
-// Função para traduzir texto usando API gratuita
+// Função para traduzir texto usando Google Translate (endpoint não-oficial)
 async function translateText(text) {
   try {
-    const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|pt`);
+    const response = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=pt&dt=t&q=${encodeURIComponent(text)}`);
     const data = await response.json();
-    return data.responseData.translatedText;
+    if (Array.isArray(data) && Array.isArray(data[0]) && Array.isArray(data[0][0])) {
+      return data[0][0][0];
+    }
+    return text;
   } catch (error) {
     console.error('Erro ao traduzir:', error);
-    return text; // Retorna texto original em caso de erro
+    return text;
   }
 }
 
@@ -619,12 +650,13 @@ async function toggleTranslation() {
     console.log('⏳ Tradução em andamento...');
     return;
   }
-  
+
   const translateBtn = document.querySelector('.btn-news-ctrl:nth-child(3)');
-  
+
   if (newsTranslated) {
     // Voltar para original
     newsTranslated = false;
+    localStorage.setItem('newsTranslated', 'false');
     translateBtn.textContent = 'Traduzir';
     translateBtn.style.background = '';
     updateNewsPanel(originalNews);
@@ -635,25 +667,37 @@ async function toggleTranslation() {
       console.warn('⚠️ Nenhuma notícia para traduzir');
       return;
     }
-    
+
     isTranslating = true;
     translateBtn.textContent = 'Traduzindo...';
     translateBtn.style.background = '#ffa500';
-    
-    console.log('🌐 Iniciando tradução de', originalNews.length, 'notícias...');
-    
+
+    // Carregar traduções já salvas
+    let savedTranslations = loadTranslatedNews();
+    // Mapear notícias já traduzidas por id ou título
+    const translatedMap = {};
+    savedTranslations.forEach(n => { if (n.id) translatedMap[n.id] = n; else if (n.title) translatedMap[n.title] = n; });
+
     try {
-      // Traduzir todas as notícias
+      // Traduzir apenas notícias novas
       const translationPromises = originalNews.map(async (news) => {
-        const translatedTitle = await translateText(news.title);
-        return {
-          ...news,
-          title: translatedTitle
-        };
+        // Identificador único: id, url ou título
+        const key = news.id || news.url || news.title;
+        if (translatedMap[key] && translatedMap[key].originalTitle === news.title) {
+          return translatedMap[key];
+        } else {
+          const translatedTitle = await translateText(news.title);
+          return {
+            ...news,
+            originalTitle: news.title,
+            title: translatedTitle
+          };
+        }
       });
-      
       translatedNews = await Promise.all(translationPromises);
       newsTranslated = true;
+      localStorage.setItem('newsTranslated', 'true');
+      saveTranslatedNews(translatedNews);
       translateBtn.textContent = 'Original';
       translateBtn.style.background = 'var(--red-color)';
       updateNewsPanel(translatedNews);
@@ -859,18 +903,12 @@ function updateNasdaqPanel(data) {
     row.querySelector('.nasdaq-market-change').className = `nasdaq-market-change ${marketChangeClass}`;
     row.querySelector('.nasdaq-market-change').textContent = marketChangeText;
     row.querySelector('.nasdaq-market-time').textContent = marketTime;
-    
-    // PRE-MARKET / AFTER HOURS
+
+    // PRE-MARKET / AFTER HOURS (sem coluna de preço)
     if (stock.extended?.isExtendedHours && stock.extended.price) {
-      const extendedPrice = stock.extended.price.toFixed(2);
       const extendedChange = stock.extended.changePercent;
       extendedChangeText = `${extendedChange > 0 ? '+' : ''}${extendedChange.toFixed(2)}%`;
       const extendedChangeClass = extendedChange > 0 ? 'price-positive' : 'price-negative';
-      
-      // Debug: verificar o valor de stock.extended.time
-      console.log(`  → ${symbol} extended.time:`, stock.extended.time, typeof stock.extended.time);
-      console.log(`  → ${symbol} extended object:`, stock.extended);
-      
       const extendedTime = stock.extended.time
         ? new Date(stock.extended.time * 1000).toLocaleTimeString('pt-BR', { 
             hour: '2-digit', 
@@ -882,16 +920,17 @@ function updateNasdaqPanel(data) {
             minute: '2-digit',
             second: '2-digit'
           });
-      
-      row.querySelector('.nasdaq-extended-price').textContent = extendedPrice;
       row.querySelector('.nasdaq-extended-change').className = `nasdaq-extended-change ${extendedChangeClass}`;
       row.querySelector('.nasdaq-extended-change').textContent = extendedChangeText;
       row.querySelector('.nasdaq-extended-time').textContent = extendedTime;
-      
-      console.log(`  → ${symbol} Extended: $${extendedPrice} (${extendedChange}%) às ${extendedTime}`);
+      // Remove/preenche célula de preço se existir
+      const priceCell = row.querySelector('.nasdaq-extended-price');
+      if (priceCell) priceCell.remove();
+      console.log(`  → ${symbol} Extended: (${extendedChange}%) às ${extendedTime}`);
     } else {
       // Sem dados de horário estendido
-      row.querySelector('.nasdaq-extended-price').textContent = '--';
+      const priceCell = row.querySelector('.nasdaq-extended-price');
+      if (priceCell) priceCell.remove();
       row.querySelector('.nasdaq-extended-change').textContent = '--';
       row.querySelector('.nasdaq-extended-time').textContent = '--';
     }
@@ -1013,33 +1052,28 @@ function calculateNasdaqAverageAndAlert() {
     const alertDiv = document.getElementById('tradingAlert');
     const alertMessage = document.getElementById('alertMessage');
     
-    // Verificar se deve mostrar alerta (limite de 10%)
-    const shouldShowBuyAlert = average >= 10;
-    const shouldShowSellAlert = average <= -10;
+    // Verificar se deve mostrar alerta (limite de 0.03%)
+    const shouldShowBuyAlert = average >= 0.03;
+    const shouldShowSellAlert = average <= -0.03;
     const wasVisible = alertDiv.style.display === 'block';
     
     if (shouldShowBuyAlert) {
-      // COMPRAR
+      // SINAL DE VOLUME DE COMPRA
       alertDiv.className = 'trading-alert buy';
-      alertMessage.innerHTML = `<strong>SINAL DE COMPRA!</strong> Média das diferenças: <strong>+${average.toFixed(2)}%</strong>`;
-      
+      alertMessage.innerHTML = `<strong>SINAL DE VOLUME DE COMPRA, ANALISE MAIS DADOS!!!</strong><br>Média: <strong>+${average.toFixed(2)}%</strong>`;
       if (!wasVisible) {
-        // Tocar som apenas quando o alerta aparecer pela primeira vez
         playAlertSound();
       }
       alertDiv.style.display = 'block';
     } else if (shouldShowSellAlert) {
-      // VENDER
+      // SINAL DE VOLUME DE VENDA
       alertDiv.className = 'trading-alert sell';
-      alertMessage.innerHTML = `<strong>SINAL DE VENDA!</strong> Média das diferenças: <strong>${average.toFixed(2)}%</strong>`;
-      
+      alertMessage.innerHTML = `<strong>SINAL DE VOLUME DE VENDA, ANALISE MAIS DADOS!!!</strong><br>Média: <strong>${average.toFixed(2)}%</strong>`;
       if (!wasVisible) {
-        // Tocar som apenas quando o alerta aparecer pela primeira vez
         playAlertSound();
       }
       alertDiv.style.display = 'block';
     } else {
-      // Ocultar alerta se não atingir os limites
       alertDiv.style.display = 'none';
     }
   }
