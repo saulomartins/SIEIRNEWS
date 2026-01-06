@@ -351,12 +351,8 @@ const displayedNews = computed(()=> newsTranslated.value ? translatedNews.value 
   loadKeywords();
   translatedNews.value = loadTranslatedNews();
   const savedTrans = localStorage.getItem('newsTranslated');
-  if(savedTrans==='true') {
+  if (savedTrans === 'true') {
     newsTranslated.value = true;
-  } else if(savedTrans===null) {
-    // Enable automatic translation by default for dev/testing
-    newsTranslated.value = true;
-    try{ localStorage.setItem('newsTranslated','true'); }catch(e){}
   }
   // initial load
   fetchNews();
