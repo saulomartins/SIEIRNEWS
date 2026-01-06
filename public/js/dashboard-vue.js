@@ -125,9 +125,10 @@
         // Auto-login in dev if running on localhost and no token
         async function tryAutoLogin(){
           try{
-            if(!location.hostname.includes('localhost')) return;
-            const existing = localStorage.getItem('token');
-            if(existing) return;
+            // Require explicit opt-in for auto-login in dev to avoid accidental credential use
+            if (localStorage.getItem('ENABLE_DEV_AUTOLOGIN') !== 'true') return;
+              const existing = localStorage.getItem('token');
+              if(existing) return;
             const creds = { email: 'admin@sieirnews.com', password: 'admin123' };
             const resp = await fetch('/api/auth/login', {
               method: 'POST',
