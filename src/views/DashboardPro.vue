@@ -40,89 +40,11 @@
     <div class="dashboard-container">
       <!-- COLUNA ESQUERDA -->
       <div class="left-column" :style="{width: leftWidth + 'px'}">
-        <!-- NASDAQ -->
-        <div class="panel">
-          <div class="panel-header">
-            <span>🔴 NASDAQ</span>
-            <button @click="toggleFreeze('nasdaq')">{{ nasdaqFrozen ? '🔓' : '🔒' }}</button>
-          </div>
-          <div class="table-container">
-            <table class="nasdaq-table">
-              <thead>
-                <tr>
-                  <th rowspan="2">Ativo</th>
-                  <th colspan="3">MERCADO</th>
-                  <th colspan="3">PRE-MARKET</th>
-                  <th rowspan="2" v-if="nasdaqFrozen">Congelado</th>
-                  <th rowspan="2" v-if="nasdaqFrozen">Dif</th>
-                </tr>
-                <tr>
-                  <th>Preço</th>
-                  <th>Var.M%</th>
-                  <th>Hora</th>
-                  <th>Preço</th>
-                  <th>Var.P%</th>
-                  <th>Hora</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="stock in nasdaqData" :key="stock.ticker">
-                  <td class="symbol">{{ stock.ticker }}</td>
-                  <td>{{ stock.atClose?.price || '--' }}</td>
-                  <td :class="getVariationClass(stock.atClose?.changePercent)">
-                    {{ formatPercent(stock.atClose?.changePercent) }}%
-                  </td>
-                  <td class="time">{{ formatTime(stock.regularMarketTime) }}</td>
-                  <td>{{ stock.extended?.priceFormatted || '--' }}</td>
-                  <td :class="getVariationClass(stock.extended?.changePercent)">
-                    {{ formatPercent(stock.extended?.changePercent) }}%
-                  </td>
-                  <td class="time">{{ stock.extended?.label || '--' }}</td>
-                  <td v-if="nasdaqFrozen">{{ stock.frozen || '--' }}</td>
-                  <td v-if="nasdaqFrozen" :class="getDifferenceClass(stock.diff)">
-                    {{ stock.diff || '--' }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <!-- NASDAQ (migrado para componente Vue) -->
+        <NasdaqPanel />
 
-        <!-- METAIS -->
-        <div class="panel" style="margin-top: 10px;">
-          <div class="panel-header">
-            <span>🔴 Metais</span>
-            <button @click="toggleFreeze('metals')">{{ metalsFrozen ? '🔓' : '🔒' }}</button>
-          </div>
-          <div class="table-container">
-            <table class="metals-table">
-              <thead>
-                <tr>
-                  <th>Ativo</th>
-                  <th>Último</th>
-                  <th>Var.M%</th>
-                  <th v-if="metalsFrozen">Congelado</th>
-                  <th v-if="metalsFrozen">Dif</th>
-                  <th>Hora</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="metal in metalsData" :key="metal.ticker">
-                  <td class="symbol">{{ metal.ticker }}</td>
-                  <td>{{ metal.regularMarketPrice || '--' }}</td>
-                  <td :class="getVariationClass(metal.regularMarketChangePercent)">
-                    {{ formatPercent(metal.regularMarketChangePercent) }}%
-                  </td>
-                  <td v-if="metalsFrozen">{{ metal.frozen || '--' }}</td>
-                  <td v-if="metalsFrozen" :class="getDifferenceClass(metal.diff)">
-                    {{ metal.diff || '--' }}
-                  </td>
-                  <td class="time">{{ formatTime(metal.regularMarketTime) }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <!-- METAIS (migrado para componente Vue) -->
+        <MetalsPanel />
       </div>
 
       <!-- Resizer 1 -->
@@ -130,32 +52,7 @@
 
       <!-- COLUNA CENTRO -->
       <div class="center-column">
-        <div class="panel">
-          <div class="panel-header">
-            <span>🔴 SEIER News</span>
-            <div class="news-controls">
-              <button>🔔</button>
-              <button>🔊</button>
-            </div>
-          </div>
-          <div class="news-controls-bar">
-            <button @click="decreaseFontSize">-</button>
-            <button @click="increaseFontSize">+</button>
-            <button @click="translateNews">{{ newsTranslated ? 'Original' : 'Traduzir' }}</button>
-            <button @click="showKeywordsModal = true" title="Palavras-chave">🔑</button>
-          </div>
-          <div class="news-feed" :style="{fontSize: newsFontSize + 'px'}">
-            <div v-if="loadingNews" class="loading">Carregando notícias...</div>
-            <div v-else-if="news.length === 0" class="no-news">Nenhuma notícia disponível</div>
-            <div v-else v-for="(item, index) in news" :key="index" class="news-item">
-              <div class="news-time">{{ item.time }}</div>
-              <div class="news-category">{{ item.category }}</div>
-              <h4 class="news-title" v-html="highlightKeywords(item.title)"></h4>
-              <p class="news-description" v-html="highlightKeywords(item.description)"></p>
-              <a v-if="item.link" :href="item.link" target="_blank" class="news-link">Ler mais →</a>
-            </div>
-          </div>
-        </div>
+        <NewsPanel />
       </div>
 
       <!-- Resizer 2 -->
@@ -163,6 +60,7 @@
 
       <!-- COLUNA DIREITA -->
       <div class="right-column" :style="{width: rightWidth + 'px'}">
+        <IndicesPanel />
         <div class="panel">
           <div class="panel-header">
             <span>🔴 S&P 500 Setores</span>
@@ -192,6 +90,10 @@
 
 <script>
 import { ref, onMounted, onUnmounted } from 'vue';
+import NewsPanel from '../components/NewsPanel.vue';
+import NasdaqPanel from '../components/NasdaqPanel.vue';
+import MetalsPanel from '../components/MetalsPanel.vue';
+import IndicesPanel from '../components/IndicesPanel.vue';
 import { useRouter } from 'vue-router';
 import authService from '../services/authService';
 import dataService from '../services/dataService';
@@ -558,6 +460,10 @@ export default {
       toggleSector,
       startResize,
       handleLogout,
+      NewsPanel,
+      NasdaqPanel,
+      MetalsPanel,
+      IndicesPanel,
     };
   },
 };

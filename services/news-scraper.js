@@ -8,7 +8,7 @@ let fjCache = {
   timestamp: 0,
   isUpdating: false
 };
-const FJ_CACHE_DURATION = 10 * 60 * 1000; // 10 minutos
+const FJ_CACHE_DURATION = 1000; // 1 segundo
 
 // Função para verificar se uma data é de hoje
 function isToday(dateString) {
@@ -69,8 +69,10 @@ const scrapeInvestingNews = async () => {
     console.log('[NEWS SCRAPER] Buscando notícias do Yahoo Finance...');
     
     // Fazer scraping da página HTML do Yahoo Finance
-    const response = await axios.get('https://finance.yahoo.com/news/', {
-      headers: {
+    let response;
+    try {
+      response = await axios.get('https://finance.yahoo.com/news/', {
+        headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
@@ -81,8 +83,63 @@ const scrapeInvestingNews = async () => {
       timeout: 15000,
       maxHeaderSize: 32768, // Aumentar limite de headers para 32KB
       maxBodyLength: 10 * 1024 * 1024, // Limite de 10MB para o body
-      maxContentLength: 10 * 1024 * 1024 // Limite de 10MB para o conteúdo
+      maxContentLength: 10 * 1024 * 1024, // Limite de 10MB para o conteúdo
+      maxRedirects: 0,
+      validateStatus: status => status < 500
     });
+
+    // Se o servidor retornar um redirect (3xx), buscar manualmente a URL destino
+    if (response.status >= 300 && response.status < 400 && response.headers && response.headers.location) {
+      try {
+        const redirectUrl = response.headers.location.startsWith('http') ? response.headers.location : 'https://finance.yahoo.com' + response.headers.location;
+        console.log('[YAHOO SCRAPER] Redirect detectado para', redirectUrl);
+        const follow = await axios.get(redirectUrl, {
+          headers: response.config.headers,
+          timeout: 15000,
+          maxRedirects: 0,
+          validateStatus: status => status < 500
+        });
+        // substituir response.data pelo do follow
+        response.data = follow.data;
+      } catch (rerr) {
+        console.warn('[YAHOO SCRAPER] Falha ao seguir redirect:', rerr.message || rerr);
+      }
+    }
+    } catch (err) {
+      // Se erro de parsing de headers, tentar RSS como fallback
+      const msg = err && err.message ? err.message : String(err);
+      console.warn('[YAHOO SCRAPER] Erro ao obter HTML:', msg);
+      if (msg.includes('Header overflow') || msg.includes('ECONNRESET') || msg.includes('socket hang up')) {
+        try {
+          console.log('[YAHOO SCRAPER] Tentando RSS como fallback...');
+          const rssResp = await axios.get('https://finance.yahoo.com/rss/topstories', { timeout: 15000 });
+          const $rss = cheerio.load(rssResp.data, { xmlMode: true });
+          const news = [];
+          $rss('item').each((i, it) => {
+            const title = $rss(it).find('title').text().trim();
+            const link = $rss(it).find('link').text().trim();
+            const pubDate = $rss(it).find('pubDate').text().trim();
+            if (title && link) {
+              news.push({ title, url: link, pubDate: new Date(pubDate).toISOString(), source: 'Yahoo Finance (RSS)' });
+            }
+          });
+          console.log('[YAHOO SCRAPER] RSS retornou', news.length, 'itens');
+          // prosseguir para buscar Financial Juice e filtrar; montar retorno compatível
+          try {
+            const fjNews = await getFinancialJuiceNews();
+            if (fjNews.length > 0) news.push(...fjNews);
+          } catch (fjError) { console.error('[YAHOO SCRAPER] Erro FinancialJuice:', fjError.message || fjError); }
+
+          const todayNews = news.filter(item => isToday(item.pubDate || item.fullDate || new Date().toISOString()));
+          todayNews.sort((a,b)=> new Date(a.pubDate) - new Date(b.pubDate));
+          return { success: true, data: todayNews, timestamp: new Date().toISOString() };
+        } catch (rssErr) {
+          console.error('[YAHOO SCRAPER] RSS fallback falhou:', rssErr && rssErr.stack ? rssErr.stack : rssErr);
+          throw err; // rethrow original
+        }
+      }
+      throw err;
+    }
 
     const $ = cheerio.load(response.data);
     const news = [];
@@ -265,11 +322,11 @@ const scrapeInvestingNews = async () => {
     };
 
   } catch (error) {
-    console.error('[NEWS SCRAPER] Erro ao buscar notícias:', error.message);
+    console.error('[NEWS SCRAPER] Erro ao buscar notícias:', error && error.stack ? error.stack : error);
     return {
       success: false,
       error: 'Erro ao obter notícias',
-      details: error.message,
+      details: error && error.message ? error.message : String(error),
       data: []
     };
   }

@@ -20,6 +20,9 @@
       </div>
       <div class="header-controls">
         <span class="time-display" id="currentTime">11:33:16</span>
+        <button class="btn-icon" id="layoutBtn" title="Layout">
+          <i class="bi bi-layout-three-columns"></i>
+        </button>
         <button class="btn-icon" id="logoutBtn" title="Sair">
           <i class="bi bi-box-arrow-right"></i>
         </button>
@@ -27,16 +30,7 @@
     </div>
   </nav>
 
-  <!-- Alerta de Negociação -->
-  <div id="tradingAlert" class="trading-alert" style="display: none;">
-    <div class="alert-content">
-      <i class="bi bi-exclamation-triangle-fill"></i>
-      <span id="alertMessage"></span>
-      <button class="btn-close-alert" onclick="document.getElementById('tradingAlert').style.display='none'">
-        <i class="bi bi-x-lg"></i>
-      </button>
-    </div>
-  </div>
+  <!-- Alerta de Negociação removido -->
 
   <!-- Modal de Palavras-Chave -->
   <div id="keywordsModal" class="keywords-modal" style="display: none;">
@@ -62,7 +56,25 @@
     </div>
   </div>
 
-  <!-- Main Dashboard -->
+        <!-- Modal de Layout / Painéis -->
+        <div id="layoutModal" class="keywords-modal" style="display: none;">
+          <div class="keywords-modal-content">
+            <div class="keywords-modal-header">
+              <h3><i class="bi bi-layout-sidebar"></i> Layout de Painéis</h3>
+              <button class="btn-close-modal" onclick="document.getElementById('layoutModal').style.display='none'">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+            <div class="keywords-modal-body">
+              <p style="color: #999; margin-bottom: 1rem; font-size: 0.9rem;">Arraste os painéis para reordenar. Use os toggles para ocultar/exibir.</p>
+              <div id="panelToggles" style="display:flex;flex-direction:column;gap:0.5rem;">
+                <!-- Vue irá popular essa lista -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Dashboard -->
   <div class="dashboard-container">
     <!-- COLUNA ESQUERDA: NASDAQ + METAIS -->
     <div class="left-column">
@@ -125,6 +137,30 @@
           </table>
         </div>
       </div>
+
+      <!-- Painel de Índices (Abaixo do Metais) -->
+      <div class="panel panel-indices" style="margin-top: 10px;">
+        <div class="panel-header-mini">
+          <i class="bi bi-square-fill icon-blue"></i>
+          <span>Índices Globais</span>
+        </div>
+        <div class="indices-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Índice</th>
+                <th>Último</th>
+                <th>Var.%</th>
+                <th>Hora</th>
+                <th>Link</th>
+              </tr>
+            </thead>
+            <tbody id="indicesTableBody">
+              <!-- Dados dos índices serão inseridos aqui -->
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- DIVISOR 1 -->
@@ -138,8 +174,9 @@
           <i class="bi bi-square-fill icon-red"></i>
           <span>SEIER News</span>
           <div class="news-controls">
-            <button class="btn-news">Notificação</button>
-            <button class="btn-news">Som</button>
+            <button class="btn-news" id="notificationNewsBtn" title="Ativar/desativar notificações"><i class="bi bi-bell"></i> Notificação</button>
+            <button class="btn-news" id="soundNewsBtn" title="Ativar/desativar som das notícias"><i class="bi bi-volume-up"></i> Som</button>
+            <button class="btn-news" id="refreshNewsBtn" title="Atualizar notícias"><i class="bi bi-arrow-clockwise"></i> Atualizar</button>
           </div>
         </div>
         <div class="news-container" id="newsContainer">
@@ -160,6 +197,9 @@
     <!-- Coluna direita removida -->
   </div>
 
-    <script src="js/dashboard-pro.js?v=20251229z13"></script>
+    <!-- legacy script removed: dashboard-pro.js -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="js/dashboard-vue.js?v=20260105z01"></script>
 </body>
 </html>

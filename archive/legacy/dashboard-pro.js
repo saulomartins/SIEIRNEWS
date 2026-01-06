@@ -71,6 +71,61 @@ function initializeResizers() {
 // Listas de ativos
 const metals = ['GC=F', 'SI=F', 'PL=F', 'HG=F', 'BZ=F']; // Gold, Silver, Platinum, Copper, Crude Oil
 const nasdaqStocks = ['AAPL', 'MSFT', 'NVDA', 'AMZN', 'META', 'GOOG', 'GOOGL', 'TSLA', 'INTC', 'AMD'];
+const indicesList = [
+  {
+    symbol: 'DOW',
+    name: 'Dow Jones',
+    link: 'https://finance.yahoo.com/quote/DOW/'
+  },
+  {
+    symbol: '^GSPC',
+    name: 'S&P 500',
+    link: 'https://finance.yahoo.com/quote/%5EGSPC/'
+  },
+  {
+    symbol: 'RTY=F',
+    name: 'Russell 2000',
+    link: 'https://finance.yahoo.com/quote/RTY=F/'
+  }
+];
+
+function initializeIndicesPanel() {
+  const tbody = document.getElementById('indicesTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = indicesList.map(idx => `
+    <tr id="index-${idx.symbol.replace(/[^a-zA-Z0-9]/g, '')}">
+      <td>${idx.name}</td>
+      <td class="index-price">--</td>
+      <td class="index-change">--</td>
+      <td class="index-time">--</td>
+      <td><a href="${idx.link}" target="_blank" title="Ver no Yahoo Finance"><i class="bi bi-box-arrow-up-right"></i></a></td>
+    </tr>
+  `).join('');
+}
+
+async function fetchIndicesData() {
+  try {
+    const symbols = indicesList.map(i => i.symbol).join(',');
+    const response = await fetch(`${API_URL}/data?symbols=${symbols}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!response.ok) throw new Error('Erro ao buscar índices');
+    const data = await response.json();
+    data.forEach(idx => {
+      const row = document.getElementById(`index-${(idx.ticker || idx.symbol || '').replace(/[^a-zA-Z0-9]/g, '')}`);
+      if (row) {
+        row.querySelector('.index-price').textContent = idx.regularMarketPrice ?? '--';
+        row.querySelector('.index-change').textContent =
+          (idx.regularMarketChangePercent !== undefined && idx.regularMarketChangePercent !== null)
+            ? `${idx.regularMarketChangePercent > 0 ? '+' : ''}${idx.regularMarketChangePercent.toFixed(2)}%` : '--';
+        row.querySelector('.index-time').textContent = idx.regularMarketTime ?
+          new Date(idx.regularMarketTime * 1000).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--';
+      }
+    });
+  } catch (e) {
+    console.error('Erro ao atualizar índices:', e);
+  }
+}
 const sp500Sectors = {
   'Technology': ['AAPL', 'MSFT', 'NVDA', 'GOOGL', 'META', 'AVGO', 'CSCO', 'ADBE', 'CRM', 'ORCL'],
   'Healthcare': ['JNJ', 'UNH', 'LLY', 'ABBV', 'MRK', 'TMO', 'ABT', 'PFE', 'DHR', 'BMY'],
@@ -86,6 +141,7 @@ const sp500Sectors = {
 };
 
 let updateInterval;
+let lastAlertState = 'neutral'; // 'buy', 'sell', 'neutral'
 let frozenMetals = false;
 let frozenNasdaq = false;
 
@@ -102,6 +158,57 @@ let originalNews = [];
 let translatedNews = [];
 let newsTranslated = false;
 let isTranslating = false;
+
+// Controle de som de notícias
+let newsSoundEnabled = true;
+
+function playNewsSound() {
+  if (!newsSoundEnabled) return;
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type = 'triangle';
+  o.frequency.setValueAtTime(1047, ctx.currentTime); // C6
+  g.gain.setValueAtTime(0.25, ctx.currentTime);
+  o.connect(g);
+  g.connect(ctx.destination);
+  o.start();
+  o.frequency.linearRampToValueAtTime(1568, ctx.currentTime + 0.12); // G6
+  g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.18);
+  o.stop(ctx.currentTime + 0.18);
+  setTimeout(() => ctx.close(), 250);
+}
+
+// Botões de som e atualizar: feedback visual
+window.addEventListener('DOMContentLoaded', function() {
+  // Som
+  const soundBtn = document.getElementById('soundNewsBtn');
+  if (soundBtn) {
+    soundBtn.addEventListener('click', function() {
+      newsSoundEnabled = !newsSoundEnabled;
+      soundBtn.classList.toggle('btn-news-off', !newsSoundEnabled);
+      soundBtn.classList.add('btn-news-pressed');
+      setTimeout(() => soundBtn.classList.remove('btn-news-pressed'), 150);
+      soundBtn.innerHTML = newsSoundEnabled ? '<i class="bi bi-volume-up"></i> Som' : '<i class="bi bi-volume-mute"></i> Som';
+    });
+    // Estado inicial
+    soundBtn.innerHTML = newsSoundEnabled ? '<i class="bi bi-volume-up"></i> Som' : '<i class="bi bi-volume-mute"></i> Som';
+    soundBtn.classList.toggle('btn-news-off', !newsSoundEnabled);
+  }
+  // Atualizar
+  const refreshBtn = document.getElementById('refreshNewsBtn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('mousedown', function() {
+      refreshBtn.classList.add('btn-news-pressed');
+    });
+    refreshBtn.addEventListener('mouseup', function() {
+      refreshBtn.classList.remove('btn-news-pressed');
+    });
+    refreshBtn.addEventListener('mouseleave', function() {
+      refreshBtn.classList.remove('btn-news-pressed');
+    });
+  }
+});
 
 // Sistema de palavras-chave
 let keywords = [];
@@ -206,6 +313,8 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('Inicializando painéis...');
   initializeMetalsPanel();
   initializeNasdaqPanel();
+
+  initializeIndicesPanel();
   
   initializeNewsPanel();
   initializeHighlights();
@@ -213,14 +322,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Iniciar atualização de dados IMEDIATAMENTE
   console.log('🚀 Iniciando primeira busca de dados...');
   fetchAllData().then(() => {
+    fetchIndicesData();
     console.log('✅ Primeira busca de dados concluída');
   }).catch(err => {
     console.error('❌ Erro na primeira busca:', err);
   });
-  
+
   // Continuar atualizando a cada 1 segundo
-  updateInterval = setInterval(fetchAllData, 1000); // Atualizar a cada 1 segundo (Yahoo Finance)
-  
+  updateInterval = setInterval(() => {
+    fetchAllData();
+    fetchIndicesData();
+  }, 1000);
+
   // Buscar notícias e atualizar a cada 10 segundos
   fetchNews();
   setInterval(fetchNews, 1000);
@@ -549,17 +662,43 @@ async function fetchNews() {
     console.log('📰 Dados recebidos:', newsData);
     
     // O backend retorna diretamente o array de notícias
+    // Evitar notícias repetidas: filtrar por id, url ou título
+    function isSameNews(a, b) {
+      if (a.id && b.id) return a.id === b.id;
+      if (a.url && b.url) return a.url === b.url;
+      return a.title === b.title;
+    }
+    let incomingNews = [];
     if (Array.isArray(newsData)) {
       console.log('✅ Notícias recebidas:', newsData.length);
-      originalNews = newsData;
-      updateNewsPanel(newsTranslated ? translatedNews : originalNews);
+      incomingNews = newsData;
     } else if (newsData.data && Array.isArray(newsData.data)) {
       console.log('✅ Notícias recebidas (objeto):', newsData.data.length);
-      originalNews = newsData.data;
-      updateNewsPanel(newsTranslated ? translatedNews : originalNews);
+      incomingNews = newsData.data;
     } else {
       console.warn('⚠️ Formato inesperado de notícias:', newsData);
       updateNewsPanel([]);
+      return;
+    }
+    // Ordenar notícias por data decrescente (mais recentes primeiro)
+    incomingNews.sort((a, b) => {
+      const dateA = new Date(a.pubDate || a.fullDate || a.time || 0);
+      const dateB = new Date(b.pubDate || b.fullDate || b.time || 0);
+      return dateB - dateA;
+    });
+    // Filtrar apenas notícias novas
+    const filteredNews = incomingNews.filter(n => !originalNews.some(o => isSameNews(n, o)));
+    if (filteredNews.length > 0) {
+      // Tocar som para cada notícia nova
+      playNewsSound();
+      originalNews = filteredNews.concat(originalNews);
+      // Garantir ordenação decrescente após concatenação
+      originalNews.sort((a, b) => {
+        const dateA = new Date(a.pubDate || a.fullDate || a.time || 0);
+        const dateB = new Date(b.pubDate || b.fullDate || b.time || 0);
+        return dateB - dateA;
+      });
+      updateNewsPanel(newsTranslated ? translatedNews : originalNews);
     }
     
   } catch (error) {
@@ -1037,44 +1176,28 @@ function calculateNasdaqAverageAndAlert() {
       averageDisplay.style.display = 'inline-block';
       const strongElement = averageDisplay.querySelector('strong');
       strongElement.textContent = `${average > 0 ? '+' : ''}${average.toFixed(2)}%`;
-      
-      // Aplicar classe de cor (verde se positivo, vermelho se negativo)
-      averageDisplay.classList.remove('positive', 'negative', 'neutral');
-      if (average > 0) {
-        averageDisplay.classList.add('positive');
-      } else if (average < 0) {
-        averageDisplay.classList.add('negative');
+      // Colorir o componente da média conforme o valor
+      averageDisplay.classList.remove('buy-bg', 'sell-bg', 'neutral-bg');
+      if (average >= 0.25) {
+        averageDisplay.classList.add('buy-bg');
+        if (lastAlertState !== 'buy') {
+          playAlertSound();
+          lastAlertState = 'buy';
+        }
+      } else if (average <= -0.25) {
+        averageDisplay.classList.add('sell-bg');
+        if (lastAlertState !== 'sell') {
+          playAlertSound();
+          lastAlertState = 'sell';
+        }
       } else {
-        averageDisplay.classList.add('neutral');
+        averageDisplay.classList.add('neutral-bg');
+        lastAlertState = 'neutral';
       }
-    }
-    
-    const alertDiv = document.getElementById('tradingAlert');
-    const alertMessage = document.getElementById('alertMessage');
-    
-    // Verificar se deve mostrar alerta (limite de 0.03%)
-    const shouldShowBuyAlert = average >= 0.03;
-    const shouldShowSellAlert = average <= -0.03;
-    const wasVisible = alertDiv.style.display === 'block';
-    
-    if (shouldShowBuyAlert) {
-      // SINAL DE VOLUME DE COMPRA
-      alertDiv.className = 'trading-alert buy';
-      alertMessage.innerHTML = `<strong>SINAL DE VOLUME DE COMPRA, ANALISE MAIS DADOS!!!</strong><br>Média: <strong>+${average.toFixed(2)}%</strong>`;
-      if (!wasVisible) {
-        playAlertSound();
+      // O número da média sempre branco
+      if (strongElement) {
+        strongElement.style.color = '#fff';
       }
-      alertDiv.style.display = 'block';
-    } else if (shouldShowSellAlert) {
-      // SINAL DE VOLUME DE VENDA
-      alertDiv.className = 'trading-alert sell';
-      alertMessage.innerHTML = `<strong>SINAL DE VOLUME DE VENDA, ANALISE MAIS DADOS!!!</strong><br>Média: <strong>${average.toFixed(2)}%</strong>`;
-      if (!wasVisible) {
-        playAlertSound();
-      }
-      alertDiv.style.display = 'block';
-    } else {
-      alertDiv.style.display = 'none';
     }
   }
 }
@@ -1157,5 +1280,31 @@ function logout() {
   localStorage.removeItem('token');
   window.location.href = 'login.html';
 }
+
+// Função para atualizar notícias manualmente
+function manualRefreshNews() {
+  if (typeof fetchNews === 'function') {
+    console.log('🔄 Atualizando notícias manualmente...');
+    fetchNews();
+    // Opcional: exibir status visual
+    const btn = document.getElementById('refreshNewsBtn');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Atualizando...';
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Atualizar';
+      }, 1500);
+    }
+  }
+}
+
+// Adicionar evento ao botão de atualizar notícias
+window.addEventListener('DOMContentLoaded', function() {
+  const btn = document.getElementById('refreshNewsBtn');
+  if (btn) {
+    btn.addEventListener('click', manualRefreshNews);
+  }
+});
 
 console.log('✅ Dashboard Professional script carregado');

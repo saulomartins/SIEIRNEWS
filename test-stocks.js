@@ -10,3 +10,4 @@ scrapeInvestingNews().then(result => {
     console.log('');
   });
 }).catch(err => console.error('Erro:', err.message));
+// NOTE: if earlier run produced a short message, re-run to see full error with stack

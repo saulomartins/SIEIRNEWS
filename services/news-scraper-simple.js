@@ -11,6 +11,33 @@ let fjCache = {
 };
 const FJ_CACHE_DURATION = 10 * 60 * 1000; // 10 minutos
 
+// --- AGENDADOR AUTOMÁTICO DE ATUALIZAÇÃO DO CACHE ---
+async function updateFjCache() {
+  if (fjCache.isUpdating) return;
+  try {
+    fjCache.isUpdating = true;
+    const result = await scrapeFinancialJuiceNews();
+    // Filtrar notícias indesejadas
+    const filtered = result.filter(item => !item.title || !item.title.toLowerCase().includes('need to know market risk'));
+    if (filtered && filtered.length > 0) {
+      fjCache.data = filtered;
+      fjCache.timestamp = Date.now();
+      console.log(`[FJ AGENDADOR] Cache atualizado automaticamente com ${filtered.length} notícias`);
+    }
+  } catch (err) {
+    console.error('[FJ AGENDADOR] Erro ao atualizar cache automático:', err.message);
+  } finally {
+    fjCache.isUpdating = false;
+  }
+}
+
+// Iniciar agendador automático (a cada 10 segundos)
+if (process.env.DISABLE_SCRAPER === 'true') {
+  console.log('[FJ AGENDADOR] Agendador automático desabilitado por DISABLE_SCRAPER=true');
+} else {
+  setInterval(updateFjCache, 1000);
+}
+
 // Função para verificar se uma data é de 1 dia até hoje
 function isRecent(dateString) {
   try {
@@ -30,9 +57,10 @@ function isRecent(dateString) {
 async function getFinancialJuiceNews() {
   const now = Date.now();
   const cacheAge = now - fjCache.timestamp;
-  
+  // Reduzir cache para 1 segundo
+  const CACHE_DURATION = 1000;
   // Se o cache é válido e não está atualizando, retorna
-  if (cacheAge < FJ_CACHE_DURATION && fjCache.data.length > 0 && !fjCache.isUpdating) {
+  if (cacheAge < CACHE_DURATION && fjCache.data.length > 0 && !fjCache.isUpdating) {
     console.log(`[FJ CACHE] Usando cache (${Math.floor(cacheAge / 1000)}s de idade)`);
     return fjCache.data;
   }
@@ -48,15 +76,19 @@ async function getFinancialJuiceNews() {
     fjCache.isUpdating = true;
     console.log('[FJ CACHE] Cache expirado ou vazio, buscando novas notícias...');
     
-    const result = await scrapeFinancialJuiceNews();
-    
-    // scrapeFinancialJuiceNews agora retorna array diretamente
+    let result = await scrapeFinancialJuiceNews();
+    // Filtrar notícias indesejadas
+    result = result.filter(item => !item.title || !item.title.toLowerCase().includes('need to know market risk'));
+    // Log detalhado das notícias capturadas
+    console.log('[FJ DEBUG] Notícias capturadas do FinancialJuice:');
+    result.forEach((item, idx) => {
+      console.log(`[${idx + 1}] ${item.title} | ${item.time || item.timeText || ''} | ${item.url}`);
+    });
     if (result && result.length > 0) {
       fjCache.data = result;
       fjCache.timestamp = now;
       console.log(`[FJ CACHE] Cache atualizado com ${result.length} notícias`);
     }
-    
     return fjCache.data;
   } finally {
     fjCache.isUpdating = false;
@@ -145,6 +177,10 @@ const scrapeInvestingNews = async () => {
     // Combinar as notícias
     const allNews = [...news, ...fjNews];
     console.log(`[NEWS SCRAPER] Total combinado: ${allNews.length} notícias`);
+    // Log detalhado das notícias combinadas
+    allNews.forEach((item, idx) => {
+      console.log(`[ALL NEWS][${idx + 1}] ${item.title} | ${item.time || item.timeText || ''} | ${item.url}`);
+    });
     
     // Filtrar notícias de 1 dia até hoje
     const recentNews = allNews.filter(item => {

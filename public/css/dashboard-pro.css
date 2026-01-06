@@ -1,3 +1,25 @@
+/* Fundo colorido para a média */
+.nasdaq-average.buy-bg {
+  background: var(--green-color) !important;
+  color: #fff !important;
+  border-radius: 6px;
+  padding: 2px 8px;
+  transition: background 0.2s;
+}
+.nasdaq-average.sell-bg {
+  background: var(--red-color) !important;
+  color: #fff !important;
+  border-radius: 6px;
+  padding: 2px 8px;
+  transition: background 0.2s;
+}
+.nasdaq-average.neutral-bg {
+  background: #23232b !important;
+  color: #fff !important;
+  border-radius: 6px;
+  padding: 2px 8px;
+  transition: background 0.2s;
+}
 /* Dashboard Professional CSS */
 
 :root {
@@ -9,6 +31,19 @@
   --green-color: #10b981;
   --silver-color: #9ca3af;
   --border-color: #2a2a30;
+}
+
+/* Alerta fixo no topo direito */
+/* Alerta fixo no canto superior direito, bem colado na borda */
+.fixed-top-right {
+  position: fixed !important;
+  top: 8px;
+  right: 8px;
+  min-width: 320px;
+  max-width: 400px;
+  z-index: 9999;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.25);
+  margin: 0 !important;
 }
 
 * {
@@ -25,6 +60,7 @@ body {
 }
 
 /* Navbar */
+  position: relative;
 .navbar-pro {
   background: var(--bg-header);
   border-bottom: 2px solid var(--border-color);
@@ -42,18 +78,6 @@ body {
   font-weight: 700;
   color: #fff;
   margin: 0;
-  letter-spacing: 2px;
-}
-
-.logo-red {
-  color: var(--red-color);
-  margin-left: 2px;
-}
-
-.logo-subtitle {
-  font-size: 0.75rem;
-  color: var(--silver-color);
-  letter-spacing: 3px;
   margin: -2px 0 0 0;
 }
 

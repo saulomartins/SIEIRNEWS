@@ -118,20 +118,23 @@ router.get('/news', authMiddleware, async (req, res) => {
   try {
     console.log('📰 Requisição de notícias recebida');
     const result = await scrapeInvestingNews();
-    
     if (result.success) {
       res.json(result.data);
     } else {
+      console.error('[API /news] Erro ao obter notícias:', result.error);
       res.status(500).json({
         message: 'Erro ao obter notícias',
         error: result.error,
+        debug: result,
         data: []
       });
     }
   } catch (error) {
-    console.error('Erro na rota /news:', error);
+    console.error('[API /news] Erro interno:', error);
     res.status(500).json({ 
       message: 'Erro interno do servidor',
+      error: error.message,
+      stack: error.stack,
       data: []
     });
   }

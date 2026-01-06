@@ -77,6 +77,7 @@ async function scrapeFinancialJuiceNews() {
 
         console.log('[FINANCIAL JUICE] Preenchendo formulário de login...');
         
+
         // Tentar encontrar e preencher o campo de email com múltiplos seletores
         const emailSelectors = [
             'input[type="email"]',
@@ -86,21 +87,21 @@ async function scrapeFinancialJuiceNews() {
             '#email',
             '.email-input'
         ];
-        
         let emailFilled = false;
         for (const selector of emailSelectors) {
             try {
+                console.log(`[DEBUG LOGIN] Tentando preencher email com seletor: ${selector}`);
                 await page.waitForSelector(selector, { timeout: 2000 });
                 await page.type(selector, LOGIN_CONFIG.email);
                 console.log(`[FINANCIAL JUICE] Email preenchido com seletor: ${selector}`);
                 emailFilled = true;
                 break;
             } catch (error) {
-                // Tentar próximo seletor
+                console.log(`[DEBUG LOGIN] Falha ao preencher email com seletor: ${selector} - ${error.message}`);
             }
         }
-        
         if (!emailFilled) {
+            console.error('[DEBUG LOGIN] Nenhum seletor de email funcionou!');
             throw new Error('Campo de email não encontrado com nenhum seletor');
         }
 
@@ -113,21 +114,21 @@ async function scrapeFinancialJuiceNews() {
             '#password',
             '.password-input'
         ];
-        
         let passwordFilled = false;
         for (const selector of passwordSelectors) {
             try {
+                console.log(`[DEBUG LOGIN] Tentando preencher senha com seletor: ${selector}`);
                 await page.waitForSelector(selector, { timeout: 2000 });
                 await page.type(selector, LOGIN_CONFIG.password);
                 console.log(`[FINANCIAL JUICE] Senha preenchida com seletor: ${selector}`);
                 passwordFilled = true;
                 break;
             } catch (error) {
-                // Tentar próximo seletor
+                console.log(`[DEBUG LOGIN] Falha ao preencher senha com seletor: ${selector} - ${error.message}`);
             }
         }
-        
         if (!passwordFilled) {
+            console.error('[DEBUG LOGIN] Nenhum seletor de senha funcionou!');
             throw new Error('Campo de senha não encontrado com nenhum seletor');
         }
 
@@ -177,6 +178,12 @@ async function scrapeFinancialJuiceNews() {
         // Aguardar a página carregar após o login
         await new Promise(resolve => setTimeout(resolve, 5000));
 
+        // DEBUG: Logar HTML da página após login para inspecionar seletores
+        const pageHtml = await page.content();
+        const fs = require('fs');
+        fs.writeFileSync('financialjuice_debug.html', pageHtml);
+        console.log('[FINANCIAL JUICE] HTML da página após login salvo em financialjuice_debug.html');
+
         console.log('[FINANCIAL JUICE] Buscando notícias...');
         
         // Aguardar mais um pouco para garantir que o conteúdo carregou
@@ -185,86 +192,61 @@ async function scrapeFinancialJuiceNews() {
         // Extrair notícias da página usando seletores específicos do Financial Juice
         const news = await page.evaluate(() => {
             const newsItems = [];
-            // Buscar todos os containers de notícias
-            const newsContainers = document.querySelectorAll('.feedWrap');
-            console.log(`[FJ SCRAPER] Encontrados ${newsContainers.length} containers de notícias`);
-
+            // Buscar todos os blocos de notícia com a estrutura headline-item
+            const newsContainers = document.querySelectorAll('.headline-item');
             newsContainers.forEach((container, index) => {
-                if (index >= 30) return; // Limitar a 30 notícias
-
-                // Verificar se é notícia crítica
-                const isCritical = container.classList.contains('active-critical');
-
-                // Buscar o título - pode estar em span.headline-title-nolink ou a.headline-title-nolink
+                // Título
                 let titleElement = container.querySelector('.headline-title-nolink');
-                if (!titleElement) {
-                    console.log(`[FJ SCRAPER] Container ${index}: Sem título`);
-                    return;
-                }
-                // Pegar o texto do título
-                let title = titleElement.textContent.trim();
-                // Limpar título
-                title = title.replace(/\s+/g, ' ').trim();
-                // Filtrar títulos indesejados ou muito curtos
-                const excludedPhrases = [
-                    'Need to know market risk',
-                    'Join us and Go Real-time',
-                    'Track all markets'
-                ];
-                const shouldExclude = excludedPhrases.some(phrase => 
-                    title.toLowerCase().includes(phrase.toLowerCase())
-                );
-                if (shouldExclude || title.length < 15) {
-                    console.log(`[FJ SCRAPER] Container ${index}: Título excluído ou muito curto - "${title}"`);
-                    return;
-                }
-                // Buscar a URL se o elemento for um link, senão usar URL base
+                let title = titleElement ? titleElement.textContent.trim().replace(/\s+/g, ' ').trim() : '';
+                if (!title) return;
+                // Link
                 let url = 'https://www.financialjuice.com/home';
-                if (titleElement.tagName === 'A' && titleElement.href) {
-                    url = titleElement.href;
+                const socialNav = container.querySelector('ul.social-nav');
+                if (socialNav && socialNav.getAttribute('data-link')) {
+                    url = socialNav.getAttribute('data-link');
                 }
-                // Buscar data/hora na classe news-label ou timestamp
+                // Horário
                 let timeText = '';
-                const timeElement = container.querySelector('.news-label, .timestamp, [class*="time"]');
+                let pubDate = '';
+                const timeElement = container.querySelector('.time');
                 if (timeElement) {
                     timeText = timeElement.textContent.trim();
-                }
-                // Buscar data/hora - tentar vários seletores
-                const timeElements = container.querySelectorAll('small, .time, [class*="time"], [class*="date"], span, time');
-                for (const timeEl of timeElements) {
-                    const text = timeEl.textContent.trim();
-                    // Procurar por padrões de hora (HH:MM) ou tempo relativo
-                    if (text.match(/\d{1,2}:\d{2}/) || text.match(/\d+\s*(min|hour|hr|h|m|ago|atrás)/i)) {
-                        dateString = text;
-                        break;
+                    // Tentar converter timeText para data ISO
+                    // Se for formato HH:MM, usar hoje
+                    const match = timeText.match(/(\d{1,2}):(\d{2})/);
+                    if (match) {
+                        const now = new Date();
+                        now.setHours(parseInt(match[1]), parseInt(match[2]), 0, 0);
+                        pubDate = now.toISOString();
+                    } else if (/\d+\s*(min|hour|hr|h|m|ago|atrás)/i.test(timeText)) {
+                        // Se for relativo, subtrair minutos/horas
+                        const now = new Date();
+                        const minMatch = timeText.match(/(\d+)\s*m(in)?/i);
+                        const hourMatch = timeText.match(/(\d+)\s*h(r|our)?/i);
+                        if (minMatch) {
+                            now.setMinutes(now.getMinutes() - parseInt(minMatch[1]));
+                        } else if (hourMatch) {
+                            now.setHours(now.getHours() - parseInt(hourMatch[1]));
+                        }
+                        pubDate = now.toISOString();
+                    } else {
+                        // fallback: usar data/hora atual
+                        pubDate = new Date().toISOString();
                     }
+                } else {
+                    pubDate = new Date().toISOString();
                 }
-                
-                // Se encontrou hora, criar data de hoje com essa hora
-                let pubDate = new Date().toISOString();
-                if (timeText) {
-                    // Tentar extrair hora no formato HH:MM
-                    const timeMatch = timeText.match(/(\d{1,2}):(\d{2})/);
-                    if (timeMatch) {
-                        const today = new Date();
-                        today.setHours(parseInt(timeMatch[1]), parseInt(timeMatch[2]), 0, 0);
-                        pubDate = today.toISOString();
-                    }
-                }
-
-                console.log(`[FJ SCRAPER] Container ${index}: OK - "${title.substring(0, 50)}..."`);
-
-                // Adicionar notícia válida
+                // Categorias
+                const categories = Array.from(container.querySelectorAll('.news-label')).map(e => e.textContent.trim());
+                // Adicionar notícia
                 newsItems.push({
                     title: title.substring(0, 250),
                     url: url,
-                    pubDate: pubDate,
                     timeText: timeText,
-                    critical: isCritical
+                    pubDate: pubDate,
+                    categories: categories
                 });
             });
-
-            console.log(`[FJ SCRAPER] Total de notícias válidas: ${newsItems.length}`);
             return newsItems;
         });
 
