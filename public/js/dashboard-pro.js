@@ -10,8 +10,17 @@ function loadTranslatedNews() {
   try {
     const data = localStorage.getItem('translatedNews');
     if (data) return JSON.parse(data);
-  } catch (e) { console.error('Erro ao carregar traduções:', e); }
+  } catch (e) { console.error('Erro ao carregar traduções:', serializeError(e)); }
   return [];
+}
+// Helper to safely serialize errors for logging (prevents JSHandle@error in headless logs)
+function serializeError(err){
+  try{
+    if(!err) return String(err);
+    if(err.stack) return err.stack;
+    if(typeof err === 'object') return JSON.stringify(err);
+    return String(err);
+  }catch(e){ return String(err); }
 }
 // Dashboard Professional JavaScript
 console.log('=== DASHBOARD PROFESSIONAL INICIANDO ===');
@@ -123,7 +132,7 @@ async function fetchIndicesData() {
       }
     });
   } catch (e) {
-    console.error('Erro ao atualizar índices:', e);
+    console.error('Erro ao atualizar índices:', serializeError(e));
   }
 }
 const sp500Sectors = {
@@ -221,7 +230,7 @@ function loadKeywords() {
       keywords = JSON.parse(stored);
       console.log('✅ Palavras-chave carregadas:', keywords);
     } catch (e) {
-      console.error('❌ Erro ao carregar palavras-chave:', e);
+      console.error('❌ Erro ao carregar palavras-chave:', serializeError(e));
       keywords = [];
     }
   }
@@ -325,7 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchIndicesData();
     console.log('✅ Primeira busca de dados concluída');
   }).catch(err => {
-    console.error('❌ Erro na primeira busca:', err);
+    console.error('❌ Erro na primeira busca:', serializeError(err));
   });
 
   // Continuar atualizando a cada 1 segundo
@@ -703,7 +712,7 @@ async function fetchNews() {
     }
     
   } catch (error) {
-    console.error('❌ Erro ao buscar notícias:', error);
+    console.error('❌ Erro ao buscar notícias:', serializeError(error));
     const feed = document.getElementById('newsFeed');
     if (feed) {
       feed.innerHTML = '<div class="news-item"><span class="news-text" style="color: #ff6b6b;">Erro ao carregar notícias. Tentando novamente...</span></div>';
@@ -781,7 +790,7 @@ async function translateText(text) {
     const body = await resp.json();
     return body.translated || text;
   } catch (error) {
-    console.error('Erro ao traduzir:', error);
+    console.error('Erro ao traduzir:', serializeError(error));
     return text;
   }
 }
@@ -845,7 +854,7 @@ async function toggleTranslation() {
       updateNewsPanel(translatedNews);
       console.log('✅ Tradução concluída!');
     } catch (error) {
-      console.error('❌ Erro na tradução:', error);
+      console.error('❌ Erro na tradução:', serializeError(error));
       translateBtn.textContent = 'Traduzir';
       translateBtn.style.background = '';
     } finally {
@@ -901,7 +910,7 @@ async function fetchAllData() {
     // updateHighlights(data); // Comentado - função com erro
     
   } catch (error) {
-    console.error('❌ Erro ao buscar dados:', error);
+    console.error('❌ Erro ao buscar dados:', serializeError(error));
   }
 }
 
@@ -1144,35 +1153,40 @@ function updateNasdaqPanel(data) {
   calculateNasdaqAverageAndAlert();
 }
 
-function calculateNasdaqAverageAndAlert() {
-  if (!frozenNasdaq) return; // Só calcula quando está congelado
-  
-  let totalDiff = 0;
+async function calculateNasdaqAverageAndAlert() {
+  // Calcular média diretamente a partir das células de variação (market/extended)
+  let total = 0;
   let count = 0;
-  
+
   nasdaqStocks.forEach(symbol => {
-    if (nasdaqFrozenValues[symbol]) {
-      const row = document.getElementById(`nasdaq-${symbol}`);
-      if (row) {
-        const diffCell = row.querySelector('.nasdaq-diff');
-        const diffText = diffCell.textContent;
-        
-        if (diffText !== '--' && diffText !== '—') {
-          // Extrair valor numérico (remover seta e %)
-          const value = parseFloat(diffText.replace('↑', '').replace('↓', '').replace('%', '').trim());
-          // Se for seta para baixo, tornar negativo
-          const finalValue = diffText.includes('↓') ? -value : value;
-          totalDiff += finalValue;
-          count++;
-        }
+    const row = document.getElementById(`nasdaq-${symbol}`);
+    if (!row) return;
+
+    // Preferir variação do mercado regular, cair para extended se ausente
+    const marketCell = row.querySelector('.nasdaq-market-change');
+    const extendedCell = row.querySelector('.nasdaq-extended-change');
+
+    let text = '';
+    if (marketCell && (marketCell.textContent || '').trim() && (marketCell.textContent || '').trim() !== '--') {
+      text = marketCell.textContent.trim();
+    } else if (extendedCell && (extendedCell.textContent || '').trim() && (extendedCell.textContent || '').trim() !== '--') {
+      text = extendedCell.textContent.trim();
+    }
+
+    if (text && text !== '--' && text !== '—') {
+      const sign = text.includes('↓') ? -1 : 1;
+      const num = parseFloat(text.replace(/[↑↓+%]/g, '').trim());
+      if (!isNaN(num)) {
+        total += sign * num;
+        count++;
       }
     }
   });
   
   if (count > 0) {
-    const average = totalDiff / count;
+    const average = total / count;
     console.log(`📊 Média NASDAQ: ${average.toFixed(2)}% (${count} ativos)`);
-    
+
     // Atualizar display da média no cabeçalho
     const averageDisplay = document.getElementById('nasdaqAverage');
     if (averageDisplay) {
@@ -1183,25 +1197,41 @@ function calculateNasdaqAverageAndAlert() {
       averageDisplay.classList.remove('buy-bg', 'sell-bg', 'neutral-bg');
       if (average >= 0.25) {
         averageDisplay.classList.add('buy-bg');
-        if (lastAlertState !== 'buy') {
-          playAlertSound();
-          lastAlertState = 'buy';
-        }
+        if (lastAlertState !== 'buy') { playAlertSound(); lastAlertState = 'buy'; }
       } else if (average <= -0.25) {
         averageDisplay.classList.add('sell-bg');
-        if (lastAlertState !== 'sell') {
-          playAlertSound();
-          lastAlertState = 'sell';
-        }
+        if (lastAlertState !== 'sell') { playAlertSound(); lastAlertState = 'sell'; }
       } else {
         averageDisplay.classList.add('neutral-bg');
         lastAlertState = 'neutral';
       }
-      // O número da média sempre branco
       if (strongElement) {
         strongElement.style.color = '#fff';
       }
     }
+  }
+  else {
+    // Se não conseguiu calcular localmente, tentar solicitar ao backend
+    try {
+      const tokenLocal = localStorage.getItem('token');
+      const resp = await fetch(`${API_URL}/nasdaq-average`, { headers: tokenLocal ? { 'Authorization': `Bearer ${tokenLocal}` } : {} });
+      if (resp.ok) {
+        const body = await resp.json();
+        if (body && body.average !== null && body.count > 0) {
+          const avg = body.average;
+          const averageDisplay = document.getElementById('nasdaqAverage');
+          if (averageDisplay) {
+            averageDisplay.style.display = 'inline-block';
+            const strongElement = averageDisplay.querySelector('strong');
+            strongElement.textContent = `${avg > 0 ? '+' : ''}${avg.toFixed(2)}%`;
+            averageDisplay.classList.remove('buy-bg','sell-bg','neutral-bg');
+            if (avg >= 0.25) averageDisplay.classList.add('buy-bg');
+            else if (avg <= -0.25) averageDisplay.classList.add('sell-bg');
+            else averageDisplay.classList.add('neutral-bg');
+          }
+        }
+      }
+    } catch (e) { console.warn('Fallback nasdaq-average failed:', e); }
   }
 }
 
@@ -1280,6 +1310,8 @@ function updateHighlights(data) {
 }
 
 function logout() {
+  const confirmLogout = confirm('Tem certeza que deseja sair do dashboard?');
+  if (!confirmLogout) return;
   localStorage.removeItem('token');
   window.location.href = 'login.html';
 }

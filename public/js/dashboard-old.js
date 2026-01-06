@@ -152,7 +152,7 @@ async function fetchAllTickersData() {
       }
     }
   } catch (error) {
-    console.error('Erro:', error);
+    console.error('Erro:', (error && error.stack) ? error.stack : (typeof error === 'object' ? JSON.stringify(error) : String(error)));
     if (updateCounter === 1) {
       showAlert('Erro ao conectar com o servidor', 'danger');
     }
@@ -198,7 +198,7 @@ function createTickerCards(tickers) {
     
     let preMarketHTML = '<td class="text-center text-muted">-</td><td class="text-center text-muted">-</td>';
     
-    if (ticker.preMarket.price && ticker.preMarket.isActive) {
+    if (ticker.preMarket && ticker.preMarket.price && ticker.preMarket.isActive) {
       const preMarketPercent = parseFloat(ticker.preMarket.changePercent) || 0;
       const preMarketPositive = preMarketPercent >= 0;
       const preMarketColor = preMarketPositive ? 'text-success' : 'text-danger';
@@ -226,7 +226,7 @@ function createTickerCards(tickers) {
       
       // Calcular comparação
       let currentPercent;
-      if (frozen.period === 'premarket' && ticker.preMarket.price && ticker.preMarket.isActive) {
+      if (frozen.period === 'premarket' && ticker.preMarket && ticker.preMarket.price && ticker.preMarket.isActive) {
         currentPercent = parseFloat(ticker.preMarket.changePercent) || 0;
       } else {
         currentPercent = parseFloat(ticker.atClose.changePercent) || 0;
@@ -348,7 +348,7 @@ function updateTickerValues(tickers) {
     const preMarketPercentEl = row.querySelector('[data-premarket-percent]');
     const preMarketTimeEl = row.querySelector('[data-premarket-time]');
     
-    if (ticker.preMarket.price && ticker.preMarket.isActive) {
+    if (ticker.preMarket && ticker.preMarket.price && ticker.preMarket.isActive) {
       const preMarketPercent = parseFloat(ticker.preMarket.changePercent) || 0;
       const preMarketPositive = preMarketPercent >= 0;
       const preMarketColor = preMarketPositive ? 'text-success' : 'text-danger';
@@ -385,7 +385,7 @@ function updateTickerValues(tickers) {
         // Determinar qual percentual usar para comparação baseado no período congelado
         if (frozen.period === 'premarket') {
           // Se foi congelado no PRE-MARKET, comparar com PRE-MARKET atual
-          if (ticker.preMarket.price && ticker.preMarket.isActive) {
+          if (ticker.preMarket && ticker.preMarket.price && ticker.preMarket.isActive) {
             currentPercent = parseFloat(ticker.preMarket.changePercent) || 0;
           } else {
             currentPercent = null;
@@ -536,7 +536,7 @@ async function freezeData() {
       let period;
       
       // Determinar qual percentual congelar baseado no período atual
-      if (isPreMarketActive && ticker.preMarket.price && ticker.preMarket.isActive) {
+      if (isPreMarketActive && ticker.preMarket && ticker.preMarket.price && ticker.preMarket.isActive) {
         percentToFreeze = parseFloat(ticker.preMarket.changePercent) || 0;
         period = 'premarket';
       } else if (isMarketActive) {
@@ -544,7 +544,7 @@ async function freezeData() {
         period = 'market';
       } else {
         // Fora dos períodos, usar o último dado disponível
-        if (ticker.preMarket.price && ticker.preMarket.isActive) {
+        if (ticker.preMarket && ticker.preMarket.price && ticker.preMarket.isActive) {
           percentToFreeze = parseFloat(ticker.preMarket.changePercent) || 0;
           period = 'premarket';
         } else {

@@ -1,0 +1,91 @@
+{
+  "info": {
+    "title": "SEIER TRADER - Professional Dashboard",
+    "hasVue": true,
+    "devFlag": "true",
+    "hasToken": true,
+    "tokenPreview": "eyJhbGciOi...",
+    "newsCount": 25,
+    "newsHtml": "<div class=\"news-item\"><span class=\"news-time\">18m</span><span class=\"news-text\"><a href=\"https://finance.yahoo.com/news/orion-energy-announces-3m-led-134201233.html\" target=\"_blank\" rel=\"noopener\">Orion Energy anuncia iluminação LED de US$ 3 milhões e envolvimento de infraestrutura</a></span><span class=\"news-source\">Yahoo Finance - Top News</span></div><div class=\"news-item\"><span class=\"news-time\">18m</span><span class=\"news-text\"><a href=\"https://finance.yahoo.com/news/bitmine-immersion-announces-holdings-totaling-134153488.html\" target=\"_blank\" rel=\"noopener\">Bitmine Immersion anuncia participações totalizando US$ 14,2 bilhões</a></span><span class=\"news-source\">Yahoo Finance - Top News</span></div><div class=\"news-item\"><span class=\"news-time\">19m</span><span class=\"news-text\"><a href=\"https://finance.yahoo.com/news/kimco-realty-price-target-raised-134125829.html\" target=\"_blank\" rel=\"noopener\">O preço-alvo da Kimco Realty aumentou para US$ 23,50, de US$ 22 no Morgan Stanley</a></span><span class=\"news-source\">Yahoo Finance - Top News</span></div><div class=\"news-item\"><span class=\"news-time\">19m</span><span class=\"news-text\"><a href=\"https://finance.yahoo.com/news/yy-group-announces-expansion-egyptian-134116384.html\" target=\"_blank\" rel=\"noopener\">YY Group anuncia expansão no mercado egípcio</a></span><span class=\"news-source\">Yahoo Finance - Top News</span></div><div class=\"news-item\"><span class=\"news-time\">19m</span><span class=\"news-text\"><a href=\"https://finance.yahoo.com/news/biodexa-pharmaceuticals-promotes-fiona-sharp-134108555.html\" target=\"_blank\" rel=\"noopener\">Biodexa Pharmaceuticals promove Fiona Sharp a CFO e secretária</a></span><span class=\"news-source\">Yahoo Finance - Top News</span></div><div class=\"news-item\"><span class=\"news-time\">19m</span><span class=\"news-text\"><a href=\"https://finance.yahoo.com/news/watsco-resumed-neutral-ubs-134051822.html\" target=\"_blank\" rel=\"noopener\">Watsco retomou com Neutro no UBS</a></span><span class=\"news-so",
+    "indicesCount": 3,
+    "freezeResult": "clicked",
+    "logoutHref": "/",
+    "translateClicked": true,
+    "soundClicked": true,
+    "hasNonAscii": true,
+    "newsSample": [
+      "18mOrion Energy anuncia iluminação LED de US$ 3 milhões e envolvimento de infraestruturaYahoo Finance - Top News",
+      "Orion Energy anuncia iluminação LED de US$ 3 milhões e envolvimento de infraestrutura",
+      "18mBitmine Immersion anuncia participações totalizando US$ 14,2 bilhõesYahoo Finance - Top News",
+      "Bitmine Immersion anuncia participações totalizando US$ 14,2 bilhões",
+      "19mO preço-alvo da Kimco Realty aumentou para US$ 23,50, de US$ 22 no Morgan StanleyYahoo Finance - Top News"
+    ],
+    "logoutResult": "/",
+    "nasdaqAvg": "Média: --",
+    "nasdaqDetails": [
+      {
+        "symbol": "AAPL",
+        "marketChange": "--",
+        "frozen": "--",
+        "diff": "--"
+      },
+      {
+        "symbol": "MSFT",
+        "marketChange": "--",
+        "frozen": "--",
+        "diff": "--"
+      },
+      {
+        "symbol": "NVDA",
+        "marketChange": "--",
+        "frozen": "--",
+        "diff": "--"
+      },
+      {
+        "symbol": "AMZN",
+        "marketChange": "--",
+        "frozen": "--",
+        "diff": "--"
+      },
+      {
+        "symbol": "META",
+        "marketChange": "--",
+        "frozen": "--",
+        "diff": "--"
+      },
+      {
+        "symbol": "GOOG",
+        "marketChange": "--",
+        "frozen": "--",
+        "diff": "--"
+      },
+      {
+        "symbol": "GOOGL",
+        "marketChange": "--",
+        "frozen": "--",
+        "diff": "--"
+      },
+      {
+        "symbol": "TSLA",
+        "marketChange": "--",
+        "frozen": "--",
+        "diff": "--"
+      },
+      {
+        "symbol": "INTC",
+        "marketChange": "--",
+        "frozen": "--",
+        "diff": "--"
+      },
+      {
+        "symbol": "AMD",
+        "marketChange": "--",
+        "frozen": "--",
+        "diff": "--"
+      }
+    ],
+    "nasdaqTableHtml": "\n                <tr id=\"nasdaq-AAPL\">\n                  <td>\n                    <div class=\"stock-symbol\">\n                      <img src=\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Crect width='20' height='20' rx='3' fill='%23555'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.35em' fill='white' font-size='11' font-weight='bold'%3EA%3C/text%3E%3C/svg%3E\" style=\"width: 20px; height: 20px; margin-right: 6px;\" alt=\"AAPL\">\n                      <a href=\"https://finance.yahoo.com/quote/AAPL\" target=\"_blank\" style=\"color: inherit; text-decoration: none;\" title=\"Ver no Yahoo Finance\">AAPL</a>\n                    </div>\n                  </td>\n                  <td class=\"nasdaq-market-price\">--</td>\n                  <td class=\"nasdaq-market-change\">--</td>\n                  <td class=\"time-col nasdaq-market-time\">--</td>\n                  <td class=\"nasdaq-extended-price\">--</td>\n                  <td class=\"nasdaq-extended-change\">--</td>\n                  <td class=\"time-col nasdaq-extended-time\">--</td>\n                  <td class=\"nasdaq-frozen\">--</td>\n                  <td class=\"nasdaq-diff\">--</td>\n                </tr>\n              \n                <tr id=\"nasdaq-MSFT\">\n                  <td>\n                    <div class=\"stock-symbol\">\n                      <img src=\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Crect width='20' height='20' rx='3' fill='%230078D4'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.35em' fill='white' font-size='11' font-weight='bold'%3EM%3C/text%3E%3C/svg%3E\" style=\"width: 20px; height: 20px; margin-right: 6px;\" alt=\"MSFT\">\n                      <a href=\"https://finance.yahoo.com/quote/MSFT\" target=\"_blank\" style=\"color: inherit; text-decoration: none;\" title=\"Ver no Yahoo Finance\">MSFT</a>\n                    </div>\n                  </td>\n                  <td class=\"nasdaq-market-price\">--</td>\n                  <td cla",
+    "bodyHtml": "\n  <!-- Header Premium -->\n  <nav class=\"navbar-pro\">\n    <div class=\"container-fluid\">\n      <div class=\"d-flex align-items-center\">\n        <div class=\"logo-section\">\n          <h1 class=\"logo-title\">SEIER<span class=\"logo-red\">TRADER</span></h1>\n          <p class=\"logo-subtitle\">BATTLE</p>\n        </div>\n      </div>\n      <div class=\"header-controls\">\n        <span class=\"time-display\" id=\"currentTime\">11:33:16</span>\n        <button class=\"btn-icon\" id=\"layoutBtn\" title=\"Layout\">\n          <i class=\"bi bi-layout-three-columns\"></i>\n        </button>\n        <button class=\"btn-icon\" id=\"logoutBtn\" title=\"Sair\">\n          <i class=\"bi bi-box-arrow-right\"></i>\n        </button>\n      </div>\n    </div>\n  </nav>\n\n  <!-- Alerta de Negociação removido -->\n\n  <!-- Modal de Palavras-Chave -->\n  <div id=\"keywordsModal\" class=\"keywords-modal\" style=\"display: none;\">\n    <div class=\"keywords-modal-content\">\n      <div class=\"keywords-modal-header\">\n        <h3><i class=\"bi bi-key-fill\"></i> Palavras-Chave para Destaque</h3>\n        <button class=\"btn-close-modal\" onclick=\"document.getElementById('keywordsModal').style.display='none'\">\n          <i class=\"bi bi-x-lg\"></i>\n        </button>\n      </div>\n      <div class=\"keywords-modal-body\">\n        <p style=\"color: #999; margin-bottom: 1rem; font-size: 0.9rem;\">\n          Adicione palavras-chave que serão destacadas com marca-texto amarelo nas notícias.\n        </p>\n        <div class=\"keywords-input-group\">\n          <input type=\"text\" id=\"keywordInput\" placeholder=\"Digite uma palavra-chave...\">\n          <button id=\"addKeywordBtn\" class=\"btn-add-keyword\">Adicionar</button>\n        </div>\n        <div class=\"keywords-list\" id=\"keywordsList\">\n          <!-- Lista de palavras-chave -->\n        </div>\n      </div>\n    </div>\n  </div>\n\n        <!-- Modal de Layout / Painéis -->\n        <div id=\"layoutModal\" class=\"keywords-modal\" style=\"display: none;\">\n          <div class=\"keywords-modal-content\">\n            <div class=\"keywords-modal-header\">\n              <h3><i class=\"bi bi-layout-sidebar\"></i> Layout de Painéis</h3>\n              <button class=\"btn-close-modal\" onclick=\"document.getElementById('layoutModal').style.display='none'\">\n                <i class=\"bi bi-x-lg\"></i>\n              </button>\n            </div>\n            <div class=\"keywords-modal-body\">\n              <p style=\"color: #999; margin-bottom: 1rem; font-size: 0.9rem;\">Arraste os painéis para reordenar. Use os toggles para ocultar/exibir.</p>\n              <div id=\"panelToggles\" style=\"display:flex;flex-direction:column;gap:0.5rem;\" data-v-app=\"\"><div style=\"display: flex; justify-content: space-between; align-items: center; padding: 6px 0px;\"><span>NASDAQ</span><input type=\"checkbox\"></div><div style=\"display: flex; justify-content: space-between; align-items: center; padding: 6px 0px;\"><span>Metais</span><input type=\"checkbox\"></div><div style=\"display: flex; justify-content: space-between; align-items: center; padding: 6px 0px;\"><span>Índices</span><input type=\"checkbox\"></div><div style=\"display: flex; justify-content: space-between; align-items: center; padding: 6px 0px;\"><span>SEIER News</span><input type=\"checkbox\"></div></div>\n            </div>\n          </div>\n        </div>\n\n        <!-- Main Dashboard -->\n  <div class=\"dashboard-container\">\n    <!-- COLUNA ESQUERDA: NASDAQ + METAIS -->\n    <div class=\"left-column\">\n      <!-- Painel NASDAQ (Topo) -->\n      <div class=\"panel panel-nasdaq\">\n        <div class=\"panel-header-mini\">\n          <i class=\"bi bi-square-fill icon-red\"></i>\n          <span>NASDAQ</span>\n          <span id=\"nasdaqLastUpdate\" class=\"text-muted\" style=\"font-size: 0.75em; margin-left: 8px;\">Atualizando...</span>\n          <span id=\"nasdaqAverage\" class=\"nasdaq-average\" style=\"display: none;\">Média: <strong>--</strong></span>\n          <button class=\"btn-freeze\">Congelar</button>\n        </div>\n        <div class=\"nasdaq-table\">\n          <table>\n            <thead>\n              <tr>\n                <th rowspan=\"2\">Ativo</th>\n                <th colspan=\"3\">MERCADO (11:30-18:00)</th>\n                <th colspan=\"2\">PRE-MARKET (19:20-11:29)</th>\n                <th rowspan=\"2\" id=\"nasdaqFrozenHeader\">Var.% Congelada</th>\n                <th rowspan=\"2\">Diferença</th>\n              </tr>\n              <tr>\n                <th>Preço</th>\n                <th>Var.%</th>\n                <th class=\"time-col\">Hora</th>\n                <th>Var.%</th>\n                <th class=\"time-col\">Hora</th>\n              </tr>\n            </thead>\n            <tbody id=\"nasdaqTableBody\">\n                <tr id=\"nasdaq-AAPL\">\n                  <td>\n                    <div class=\"stock-symbol\">\n                      <img src=\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Crect width='20' height='20' rx='3' fill='%23555'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.35em' fill='white' font-size='11' font-weight='bold'%3EA%3C/text%3E%3C/svg%3E\" style=\"width: 20px; height: 20px; margin-right: 6px;\" alt=\"AAPL\">\n                      <a href=\"https://finance.yahoo.com/quote/AAPL\" target=\"_blank\" style=\"color: inherit; text-decoration: none;\" title=\"Ver no Yahoo Finance\">AAPL</a>\n                    </div>\n                  </td>\n                  <td class=\"nasdaq-market-price\">--</td>\n                  <td class=\"nasdaq-market-change\">--</td>\n                  <td class=\"time-col nasdaq-market-time\">--</td>\n                  <td class=\"nasdaq-extended-price\">--</td>\n                  <td class=\"nasdaq-extended-change\">--</td>\n                  <td class=\"time-col nasdaq-extended-time\">--</td>\n                  <td class=\"nasdaq-frozen\">--</td>\n                  <td class=\"nasdaq-diff\">--</td>\n                </tr>\n              \n                <tr id=\"nasdaq-MSFT\">\n                  <td>\n                    <div class=\"stock-symbol\">\n                      <img src=\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Crect width='20' height='20' rx='3' fill='%230078D4'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.35em' fill='white' font-size='11' font-weight='bold'%3EM%3C/text%3E%3C/svg%3E\" style=\"width: 20px; height: 20px; margin-right: 6px;\" alt=\"MSFT\">\n                      <a href=\"https://finance.yahoo.com/quote/MSFT\" target=\"_blank\" style=\"color: inherit; text-decoration: none;\" title=\"Ver no Yahoo Finance\">MSFT</a>\n                    </div>\n                  </td>\n                  <td class=\"nasdaq-market-price\">--</td>\n                  <td class=\"nasdaq-market-change\">--</td>\n                  <td class=\"time-col nasdaq-market-time\">--</td>\n                  <td class=\"nasdaq-extended-price\">--</td>\n                  <td class=\"nasdaq-extended-change\">--</td>\n                  <td class=\"time-col nasdaq-extended-time\">--</td>\n                  <td class=\"nasdaq-frozen\">--</td>\n                  <td class=\"nasdaq-diff\">--</td>\n                </tr>\n              \n                <tr id=\"nasdaq-NVDA\">\n                  <td>\n                    <div class=\"stock-symbol\">\n                      <img src=\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Crect width='20' height='20' rx='3' fill='%2376B900'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.35em' fill='white' font-size='11' font-weight='bold'%3EN%3C/text%3E%3C/svg%3E\" style=\"width: 20px; height: 20px; margin-right: 6px;\" alt=\"NVDA\">\n                      <a href=\"https://finance.yahoo.com/quote/NVDA\" target=\"_blank\" style=\"color: inherit; text-decoration: none;\" title=\"Ver no Yahoo Finance\">NVDA</a>\n                    </div>\n                  </td>\n                  <td class=\"nasdaq-market-price\">--</td>\n                  <td class=\"nasdaq-market-change\">--</td>\n                  <td class=\"time-col nasdaq-market-time\">--</td>\n                  <td class=\"nasdaq-extended-price\">--</td>\n                  <td clas"
+  },
+  "logs": []
+}

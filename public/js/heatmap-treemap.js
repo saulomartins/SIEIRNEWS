@@ -239,7 +239,7 @@ async function fetchStockData() {
 
         return data;
     } catch (error) {
-        console.error('Erro ao buscar dados:', error);
+        console.error('Erro ao buscar dados:', (error && error.stack) ? error.stack : (typeof error === 'object' ? JSON.stringify(error) : String(error)));
         return null;
     }
 }

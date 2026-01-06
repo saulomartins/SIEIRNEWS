@@ -94,6 +94,40 @@ router.get('/default-tickers', authMiddleware, (req, res) => {
   res.json({ tickers: defaultTickers });
 });
 
+// Rota para calcular média NASDAQ (média de var.% dos símbolos selecionados)
+router.get('/nasdaq-average', authMiddleware, async (req, res) => {
+  try {
+    const nasdaqStocks = ['AAPL','MSFT','NVDA','AMZN','META','GOOG','GOOGL','TSLA','INTC','AMD'];
+    const promises = nasdaqStocks.map(s => scrapeYahooFinance(s));
+    const results = await Promise.all(promises);
+
+    let total = 0;
+    let count = 0;
+    const details = [];
+
+    results.forEach(r => {
+      if (r && r.success && r.data) {
+        const d = r.data;
+        // prefer regular market change percent, fallback to extended
+        let change = null;
+        if (d.regularMarketChangePercent !== undefined && d.regularMarketChangePercent !== null) change = d.regularMarketChangePercent;
+        else if (d.extended && d.extended.changePercent !== undefined && d.extended.changePercent !== null) change = d.extended.changePercent;
+        if (change !== null && !isNaN(change)) {
+          total += change;
+          count++;
+        }
+        details.push({ ticker: d.ticker || d.symbol, change });
+      }
+    });
+
+    const average = count > 0 ? total / count : null;
+    res.json({ average, count, details });
+  } catch (error) {
+    console.error('Erro na rota /nasdaq-average:', error);
+    res.status(500).json({ message: 'Erro interno', error: error.message });
+  }
+});
+
 // Rota legada (mantida para compatibilidade)
 router.get('/tsla', authMiddleware, async (req, res) => {
   try {

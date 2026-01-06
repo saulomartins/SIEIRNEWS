@@ -44,7 +44,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
       loginBtn.innerHTML = 'Entrar';
     }
   } catch (error) {
-    console.error('Erro:', error);
+    console.error('Erro:', (error && error.stack) ? error.stack : (typeof error === 'object' ? JSON.stringify(error) : String(error)));
     showAlert('Erro ao conectar com o servidor', 'danger');
     loginBtn.disabled = false;
     loginBtn.innerHTML = 'Entrar';

@@ -17,7 +17,7 @@ try {
         localStorage.removeItem('dashboardPanels');
     }
 } catch (e) {
-    console.error('Erro ao verificar layout:', e);
+    console.error('Erro ao verificar layout:', (e && e.stack) ? e.stack : (typeof e === 'object' ? JSON.stringify(e) : String(e)));
 }
 
 // ==================== AUTENTICAÇÃO ====================
@@ -99,7 +99,7 @@ function loadLayout() {
             panels = JSON.parse(savedPanels);
             console.log('Metadados de painéis carregados:', panels);
         } catch (e) {
-            console.error('Erro ao carregar metadados:', e);
+            console.error('Erro ao carregar metadados:', (e && e.stack) ? e.stack : (typeof e === 'object' ? JSON.stringify(e) : String(e)));
         }
     }
     
@@ -115,7 +115,7 @@ function loadLayout() {
                 addPanelToGrid(panelData.type, panelData.title, item.x, item.y, item.w, item.h, panelId);
             });
         } catch (error) {
-            console.error('Erro ao carregar layout:', error);
+            console.error('Erro ao carregar layout:', (error && error.stack) ? error.stack : (typeof error === 'object' ? JSON.stringify(error) : String(error)));
             createDefaultPanel();
         }
     } else {
