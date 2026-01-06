@@ -185,6 +185,56 @@
           }catch(e){ console.error('Erro ao popular índices:', e); }
         })();
 
+        // Fetch and populate news feed for static HTML (if present)
+        (async function populateNews(){
+          try{
+            const feed = document.getElementById('newsFeed');
+            if(!feed) return;
+            const token = localStorage.getItem('token');
+            const resp = await fetch('/api/data/news', { headers: token ? { 'Authorization': `Bearer ${token}` } : {} });
+            if(!resp.ok){
+              console.warn('Não foi possível obter notícias:', resp.status);
+              feed.innerHTML = '<div class="news-item"><span class="news-text">Nenhuma notícia disponível</span></div>';
+              return;
+            }
+            const data = await resp.json();
+            const list = Array.isArray(data) ? data : (data.data && Array.isArray(data.data) ? data.data : []);
+            if(list.length===0){ feed.innerHTML = '<div class="news-item"><span class="news-text">Nenhuma notícia disponível</span></div>'; return; }
+            // check if auto-translate is enabled
+            const autoTranslate = localStorage.getItem('newsTranslated') === 'true';
+            feed.innerHTML = list.slice(0,25).map(n=>{
+              const time = n.time || n.fullDate || '';
+              const title = n.title || 'Sem título';
+              const url = n.url || '#';
+              const source = n.source || '';
+              return `<div class="news-item"><span class="news-time">${time}</span><span class="news-text"><a href="${url}" target="_blank" rel="noopener">${title}</a></span><span class="news-source">${source}</span></div>`;
+            }).join('');
+
+            // If auto-translate enabled, translate titles in-place (best-effort)
+            if (autoTranslate) {
+              try{
+                const anchors = Array.from(feed.querySelectorAll('.news-text a'));
+                anchors.forEach(async (a)=>{
+                  try{
+                    const txt = a.textContent || '';
+                        try{
+                          const tResp = await fetch('/api/translate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ text: txt, target: 'pt' })
+                          });
+                          if (tResp.ok) {
+                            const tBody = await tResp.json();
+                            if (tBody && tBody.translated) a.textContent = tBody.translated;
+                          }
+                        }catch(e){}
+                  }catch(e){}
+                });
+              }catch(e){}
+            }
+          }catch(e){ console.error('Erro ao popular notícias (dashboard-vue):', e); }
+        })();
+
       });
 
       return { panels };

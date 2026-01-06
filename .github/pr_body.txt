@@ -1,0 +1,61 @@
+Chore: Dashboard cleanup — archive legacy script, migrate panels to Vue, add tests & CI
+
+Resumo
+-----
+Este PR faz uma limpeza e migração do dashboard profissional e adiciona infraestrutura básica de testes. Principais objetivos:
+
+- Arquivar o script legado `public/js/dashboard-pro.js` em `archive/legacy/` para preservar histórico.
+- Migrar painéis críticos para componentes Vue: `NewsPanel`, `NasdaqPanel`, `MetalsPanel`, `IndicesPanel`.
+- Adicionar fallback RSS e logs mais verbosos ao `news-scraper` para robustez em ambientes com header overflow.
+- Condicionar auto-login de desenvolvimento a flag explícita (`localStorage.ENABLE_DEV_AUTOLOGIN`) para evitar exposição de credenciais.
+- Adicionar scripts utilitários para testes (`scripts/capture_console.js`, `scripts/check_assets.js`, `scripts/fetch_news_sample.js`) e README de testes (`README_TESTS.md`).
+- Adicionar workflow CI mínimo (`.github/workflows/ci.yml`) que executa os smoke tests.
+- Adicionar favicon placeholder para evitar 404s durante testes.
+
+Arquivos principais alterados/adicionados
+-------------------------------------
+- Moved: `public/js/dashboard-pro.js` → `archive/legacy/dashboard-pro.js`
+- Added: `src/components/IndicesPanel.vue`, `NewsPanel.vue`, `NasdaqPanel.vue`, `MetalsPanel.vue`
+- Modified: `public/js/dashboard-vue.js` (auto-login condicional; populate indices fallback), `services/news-scraper.js` (RSS fallback + verbose errors)
+- Added: `README_TESTS.md`, `.github/workflows/ci.yml`, `public/favicon.ico` (placeholder), scripts under `scripts/`.
+
+Testes executados localmente
+---------------------------
+- Iniciei o servidor com `DISABLE_SCRAPER=true` para evitar agendadores em background.
+- Rodei `scripts/capture_console.js` (headless) — verificou presença do Vue e do `IndicesPanel`.
+- Executei `node test-news.js` — retornou notícias com sucesso.
+- Executei `node test-stocks.js` — inicialmente falhou com `Parse Error: Header overflow`; implementei fallback para RSS e agora o teste retorna notícias (combinação RSS + Financial Juice).
+
+Como testar localmente
+----------------------
+1. Defina `DISABLE_SCRAPER=true` antes de iniciar o servidor em dev.
+2. (Opcional) Ative auto-login dev no navegador para testes locais:
+
+   ```js
+   localStorage.setItem('ENABLE_DEV_AUTOLOGIN', 'true')
+   ```
+
+3. Inicie o servidor: `node server.js`.
+4. Execute os scripts de teste:
+
+   ```bash
+   node scripts/capture_console.js
+   node test-news.js
+   node test-stocks.js
+   ```
+
+Riscos / Observações
+--------------------
+- O auto-login permanece somente por flag explícita; NÃO é seguro em ambientes compartilhados. Recomendo remover/condicionar antes de deploy em produção.
+- O scraping de sites públicos pode ser sujeito a bloqueios ou mudanças de HTML; o fallback RSS e logs ajudam a reduzir fragilidade.
+
+Checklist para revisão
+----------------------
+- [ ] Revisar mudanças no `news-scraper.js` (fallback e logs).
+- [ ] Validar que os novos componentes Vue exibem os dados corretamente no app SPA.
+- [ ] Confirmar que a CI roda os testes mínimos conforme esperado.
+- [ ] Confirmar que arquivamento do arquivo legado preservou o histórico.
+
+Notas finais
+-----------
+Se aprovar, posso abrir o PR por você (branch já pushada: `feature/dashboard-cleanup`). Se preferir, posso também reverter somente o auto-login dev antes do merge.

@@ -11,7 +11,7 @@
     <div class="news-controls-bar">
       <button @click="decreaseFontSize">-</button>
       <button @click="increaseFontSize">+</button>
-      <button @click="toggleTranslation">{{ newsTranslated ? 'Original' : 'Traduzir' }}</button>
+      <button @click="toggleTranslation">{{ newsTranslated ? 'Desativar tradução' : 'Ativar tradução automática' }}</button>
       <button @click="showKeywordsModal = true" title="Palavras-chave">🔑</button>
       <button @click="manualRefreshNews">🔄</button>
     </div>
@@ -133,10 +133,14 @@ export default {
 
     async function translateText(text) {
       try {
-        const resp = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=pt&dt=t&q=${encodeURIComponent(text)}`);
-        const data = await resp.json();
-        if (Array.isArray(data) && Array.isArray(data[0]) && Array.isArray(data[0][0])) return data[0][0][0];
-        return text;
+        const resp = await fetch('/api/translate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, target: 'pt' })
+        });
+        if (!resp.ok) return text;
+        const body = await resp.json();
+        return body.translated || text;
       } catch (e) { console.error('translate error', e); return text; }
     }
 
@@ -216,7 +220,7 @@ export default {
       <div class="news-controls-left">
         <button class="btn-news-ctrl" @click="decreaseFont">-</button>
         <button class="btn-news-ctrl" @click="increaseFont">+</button>
-        <button class="btn-news-ctrl" @click="toggleTranslation">{{ newsTranslated ? 'Original' : 'Traduzir' }}</button>
+        <button class="btn-news-ctrl" @click="toggleTranslation">{{ newsTranslated ? 'Desativar tradução' : 'Ativar tradução automática' }}</button>
         <button class="btn-news-ctrl" @click="openKeywordsModal"><i class="bi bi-key-fill"></i></button>
       </div>
 
@@ -269,7 +273,6 @@ export default {
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 
 const API_URL = 'http://localhost:3000/api'
-const token = localStorage.getItem('token')
 
 const newsList = ref([])
 const originalNews = ref([])
@@ -304,7 +307,37 @@ async function translateText(text){ try{ const response = await fetch(`https://t
 
 async function toggleTranslation(){ if(isTranslating.value) return; if(newsTranslated.value){ newsTranslated.value=false; localStorage.setItem('newsTranslated','false'); return } if(originalNews.value.length===0) return; isTranslating.value=true; try{ const saved = loadTranslatedNews(); const map = {}; saved.forEach(n=>{ const key = n.id||n.url||n.title; if(key) map[key]=n }); const promises = originalNews.value.map(async news=>{ const key = news.id||news.url||news.title; if(map[key] && map[key].originalTitle===news.title) return map[key]; const t = await translateText(news.title); return {...news, originalTitle: news.title, title: t } }); translatedNews.value = await Promise.all(promises); newsTranslated.value=true; localStorage.setItem('newsTranslated','true'); saveTranslatedNews(translatedNews.value); }catch(e){console.error('Erro tradução',e)} finally{ isTranslating.value=false } }
 
-async function fetchNews(){ try{ loading.value=true; const resp = await fetch(`${API_URL}/data/news`, { headers: { 'Authorization': `Bearer ${token}` } }); if(!resp.ok) throw new Error('HTTP '+resp.status); const nd = await resp.json(); let incoming = []; if(Array.isArray(nd)) incoming = nd; else if(nd.data && Array.isArray(nd.data)) incoming = nd.data; else { console.warn('Formato inesperado', nd); newsList.value=[]; loading.value=false; return } incoming.sort((a,b)=> new Date(b.pubDate||b.fullDate||b.time||0) - new Date(a.pubDate||a.fullDate||a.time||0)); function isSame(a,b){ if(a.id&&b.id) return a.id===b.id; if(a.url&&b.url) return a.url===b.url; return a.title===b.title } const newItems = incoming.filter(n=>!originalNews.value.some(o=>isSame(n,o))); if(newItems.length>0){ playNewsSound(); originalNews.value = newItems.concat(originalNews.value); originalNews.value.sort((a,b)=> new Date(b.pubDate||b.fullDate||b.time||0) - new Date(a.pubDate||a.fullDate||a.time||0)); if(newsTranslated.value){ const translatedNew = await Promise.all(newItems.map(async n=>{ const t = await translateText(n.title); return {...n, originalTitle: n.title, title: t } })); translatedNews.value = translatedNew.concat(translatedNews.value); saveTranslatedNews(translatedNews.value); } newsList.value = newsTranslated.value ? translatedNews.value.slice() : originalNews.value.slice(); } if(newsList.value.length===0) newsList.value = (newsTranslated.value ? translatedNews.value : originalNews.value).slice(); loading.value=false; }catch(e){ console.error('Erro buscar notícias',e); loading.value=false } }
+    async function fetchNews(){
+      try{
+        loading.value=true;
+        const currentToken = localStorage.getItem('token');
+        const headers = currentToken ? { 'Authorization': `Bearer ${currentToken}` } : {};
+        const resp = await fetch(`${API_URL}/data/news`, { headers });
+        if(!resp.ok) throw new Error('HTTP '+resp.status);
+        const nd = await resp.json();
+        let incoming = [];
+        if(Array.isArray(nd)) incoming = nd;
+        else if(nd.data && Array.isArray(nd.data)) incoming = nd.data;
+        else { console.warn('Formato inesperado', nd); newsList.value=[]; loading.value=false; return }
+
+        incoming.sort((a,b)=> new Date(b.pubDate||b.fullDate||b.time||0) - new Date(a.pubDate||a.fullDate||a.time||0));
+        function isSame(a,b){ if(a.id&&b.id) return a.id===b.id; if(a.url&&b.url) return a.url===b.url; return a.title===b.title }
+        const newItems = incoming.filter(n=>!originalNews.value.some(o=>isSame(n,o)));
+        if(newItems.length>0){
+          playNewsSound();
+          originalNews.value = newItems.concat(originalNews.value);
+          originalNews.value.sort((a,b)=> new Date(b.pubDate||b.fullDate||b.time||0) - new Date(a.pubDate||a.fullDate||a.time||0));
+          if(newsTranslated.value){
+            const translatedNew = await Promise.all(newItems.map(async n=>{ const t = await translateText(n.title); return {...n, originalTitle: n.title, title: t } }));
+            translatedNews.value = translatedNew.concat(translatedNews.value);
+            saveTranslatedNews(translatedNews.value);
+          }
+          newsList.value = newsTranslated.value ? translatedNews.value.slice() : originalNews.value.slice();
+        }
+        if(newsList.value.length===0) newsList.value = (newsTranslated.value ? translatedNews.value : originalNews.value).slice();
+        loading.value=false;
+      }catch(e){ console.error('Erro buscar notícias',e); loading.value=false }
+    }
 
 function refreshNews(){ fetchNews() }
 function toggleSound(){ newsSoundEnabled.value = !newsSoundEnabled.value }
@@ -314,13 +347,20 @@ function increaseFont(){ if(fontSize.value<24) fontSize.value++ }
 
 const displayedNews = computed(()=> newsTranslated.value ? translatedNews.value : originalNews.value )
 
-onMounted(()=>{
+  onMounted(()=>{
   loadKeywords();
   translatedNews.value = loadTranslatedNews();
-  const savedTrans = localStorage.getItem('newsTranslated'); if(savedTrans==='true') newsTranslated.value=true;
+  const savedTrans = localStorage.getItem('newsTranslated');
+  if(savedTrans==='true') {
+    newsTranslated.value = true;
+  } else if(savedTrans===null) {
+    // Enable automatic translation by default for dev/testing
+    newsTranslated.value = true;
+    try{ localStorage.setItem('newsTranslated','true'); }catch(e){}
+  }
   // initial load
   fetchNews();
-  newsInterval = setInterval(fetchNews, 1000);
+  newsInterval = setInterval(fetchNews, 10000);
 })
 
 onBeforeUnmount(()=>{ if(newsInterval) clearInterval(newsInterval) })

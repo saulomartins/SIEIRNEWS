@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const authRoutes = require('./routes/auth');
 const dataRoutes = require('./routes/data');
+const translateRoutes = require('./routes/translate');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,6 +18,7 @@ app.use(express.static('public'));
 // Rotas
 app.use('/api/auth', authRoutes);
 app.use('/api/data', dataRoutes);
+app.use('/api/translate', translateRoutes);
 
 // Rota principal
 app.get('/', (req, res) => {
